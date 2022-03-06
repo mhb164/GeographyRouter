@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FD19A02C-5EB4-4914-9E28-3EFA3CD52672}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Geography</RootNamespace>
+    <AssemblyName>Geography</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assistants\EPSG.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\AngularUnit.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\AxisInfo.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\AxisOrientationEnum.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\CoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\CoordinateSystemFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Datum.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\DatumType.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Ellipsoid.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\GeocentricCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\GeographicCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\GeographicTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\HorizontalCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\HorizontalDatum.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IAngularUnit.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ICompoundCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ICoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ICoordinateSystemFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IDatum.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IEllipsoid.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IFittedCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IGeocentricCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IGeodeticSpatialReference.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IGeographicCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IGeographicTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IHorizontalCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IHorizontalDatum.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IInfo.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ILinearUnit.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ILocalCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ILocalDatum.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Info.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IParameterInfo.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IPrimeMeridian.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IProjectedCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IProjection.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IUnit.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IVerticalCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\IVerticalDatum.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\LinearUnit.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Parameter.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\PrimeMeridian.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ProjectedCoordinateSystem.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Projection.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\ProjectionParameter.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Projections\AlbersProjection.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Projections\KrovakProjection.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Projections\LambertConformalConic.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Projections\MapProjection.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Projections\Mercator.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Projections\TransverseMercator.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\ConcatenatedTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\CoordinateTransformation.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\CoordinateTransformationAuthorityFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\CoordinateTransformationFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\DatumTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\DomainFlags.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\GeocentricTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\GeographicTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\ICoordinateSystemAuthorityFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\ICoordinateTransformation.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\ICoordinateTransformationAuthorityFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\ICoordinateTransformationFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\IMathTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\IMathTransformFactory.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\MathTransform.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Transformations\TransformType.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\Unit.cs" />
+    <Compile Include="Assistants\Map.Projections\CoordinateSystems\WGS84ConversionInfo.cs" />
+    <Compile Include="Assistants\Map.Projections\IO\CoordinateSystemWktReader.cs" />
+    <Compile Include="Assistants\Map.Projections\IO\StreamTokenizer.cs" />
+    <Compile Include="Assistants\Map.Projections\IO\TokenType.cs" />
+    <Compile Include="Assistants\Map.Projections\IO\WKTStreamTokenizer.cs" />
+    <Compile Include="GeographyRepository.IO.cs" />
+    <Compile Include="GeographyRepository.cs" />
+    <Compile Include="Model\DataModel.cs" />
+    <Compile Include="Model\DataModel.Runtime.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Router\GeoRouter.cs" />
+    <Compile Include="Router\GeoRouter.Model.cs" />
+    <Compile Include="Router\GeoRouter.Routing.cs" />
+    <Compile Include="UpdateResult.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
