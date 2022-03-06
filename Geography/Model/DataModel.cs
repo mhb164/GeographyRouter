@@ -7,12 +7,6 @@ using System.Text;
 
 namespace GeographyModel
 {
-    public enum LayerGeographyType
-    {
-        Point = 1,
-        Polyline = 2,
-        Polygon = 3,
-    }
     [DataContract]
     public partial class Layer
     {
@@ -25,7 +19,7 @@ namespace GeographyModel
         [DataMember(Order = 03)]
         public string Displayname { get; set; }
         [DataMember(Order = 04)]
-        public LayerGeographyType GeographyType { get; set; }
+        public GeographyRouter.LayerGeographyType GeographyType { get; set; }
         [DataMember(Order = 05)]
         public bool IsElectrical { get; set; }
         [DataMember(Order = 06)]

@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32126.315
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geography", "Geography\Geography.csproj", "{FD19A02C-5EB4-4914-9E28-3EFA3CD52672}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geography.TestApp", "Geography.TestApp\Geography.TestApp.csproj", "{161ADE0B-BA04-4A05-95B2-1A3F2DB0502C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeographyRouter", "GeographyRouter\GeographyRouter.csproj", "{CBE819A9-B13B-4C6F-940E-8F3167FA818A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{161ADE0B-BA04-4A05-95B2-1A3F2DB0502C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{161ADE0B-BA04-4A05-95B2-1A3F2DB0502C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{161ADE0B-BA04-4A05-95B2-1A3F2DB0502C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBE819A9-B13B-4C6F-940E-8F3167FA818A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBE819A9-B13B-4C6F-940E-8F3167FA818A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBE819A9-B13B-4C6F-940E-8F3167FA818A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBE819A9-B13B-4C6F-940E-8F3167FA818A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

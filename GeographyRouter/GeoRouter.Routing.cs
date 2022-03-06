@@ -1,5 +1,4 @@
-﻿using GeographyModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -46,7 +45,7 @@ namespace GeographyRouter
             Log($"Routing finished({stopwatch.Elapsed.TotalSeconds:N3}s)");
         }
 
-        private Routing CreateRouting(LayerElement source)
+        private Routing CreateRouting(ILayerElement source)
         {
             var routing = new Routing(source);
             routings.Add(routing);
@@ -84,14 +83,14 @@ namespace GeographyRouter
             }
             return routing;
         }
-        public List<LayerElement> HitTest(CoordinateRef coordinate, bool justNotRoute)
+        public List<ILayerElement> HitTest(CoordinateRef coordinate, bool justNotRoute)
         {
-            var result = new List<LayerElement>();
+            var result = new List<ILayerElement>();
             Repo.RoutingHitTest(coordinate.Latitude, coordinate.Longitude, ref result, justNotRoute);
             return result;
         }
 
-        private static Node CreateNode(GeoRouter assistant, ref Routing routing, Route preroute, LayerElement element)
+        private static Node CreateNode(GeoRouter assistant, ref Routing routing, Route preroute, ILayerElement element)
         {
             var node = new Node(routing, preroute, element);
             if(preroute == null) routing.Add(node, 0);
@@ -99,7 +98,7 @@ namespace GeographyRouter
             assistant.Add(element, node);
 
             var HitTestResult = assistant.HitTest(node.Coordinate, false);
-            foreach (var item in HitTestResult.Where(x => x.Layer.GeographyType == LayerGeographyType.Point))
+            foreach (var item in HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Point))
             {
                 if (item == element) continue;
                 if (item.Routed)
@@ -114,7 +113,7 @@ namespace GeographyRouter
                 node.Add(item);
             }
 
-            foreach (var item in HitTestResult.Where(x => x.Layer.GeographyType == LayerGeographyType.Polyline))
+            foreach (var item in HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Polyline))
             {
                 if (item.Routed) continue;
                 if (node.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
@@ -125,7 +124,7 @@ namespace GeographyRouter
             return node;
         }
 
-        private static void CreateRoute(GeoRouter assistant, ref Routing routing, Branch branch, Node node, LayerElement element)
+        private static void CreateRoute(GeoRouter assistant, ref Routing routing, Branch branch, Node node, ILayerElement element)
         {
             var route = default(Route);
             if (node != null)
@@ -157,8 +156,8 @@ namespace GeographyRouter
                         throw new ApplicationException($"Route output is null ({string.Join(",", route.Elements.Select(x => x.Code))}, input: {route.Input})");
                 }
                 var HitTestResult = assistant.HitTest(route.Output, true);
-                var HitTestResultPoints = HitTestResult.Where(x => x.Layer.GeographyType == LayerGeographyType.Point).ToList();
-                var HitTestResultLines = HitTestResult.Where(x => x.Layer.GeographyType == LayerGeographyType.Polyline && x != element).ToList();
+                var HitTestResultPoints = HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Point).ToList();
+                var HitTestResultLines = HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Polyline && x != element).ToList();
 
                 if (HitTestResultPoints.Count() > 0)//Node
                 {
@@ -195,7 +194,7 @@ namespace GeographyRouter
             }
         }
 
-        private static Branch CreateBranch(GeoRouter assistant, ref Routing routing, Route preroute, CoordinateRef coordinate, List<LayerElement> HitTestResult)
+        private static Branch CreateBranch(GeoRouter assistant, ref Routing routing, Route preroute, CoordinateRef coordinate, List<ILayerElement> HitTestResult)
         {
             var branch = new Branch(routing, preroute, coordinate);
             routing.Add(branch, preroute.Precedence);

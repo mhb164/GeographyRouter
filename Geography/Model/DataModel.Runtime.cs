@@ -125,42 +125,7 @@ namespace GeographyModel
 
         public override string ToString() => $"[{DomainKey}].{Code}= {Value} (v{new DateTime(Version):yyyy-MM-dd HH:mm:ss.fff})";
     }
-
-    public class CoordinateRef
-    {
-        //public CoordinateRef(double latitude, double longitude)
-        //{
-        //    Latitude = latitude;
-        //    Longitude = longitude;
-        //}
-        //public double Latitude { get; set; }
-        //public double Longitude { get; set; }
-
-        public CoordinateRef(Func<double> getLatitudeFunc, Func<double> getLongitudeFunc)
-        {
-            GetLatitudeFunc = getLatitudeFunc;
-            GetLongitudeFunc = getLongitudeFunc;
-        }
-        Func<double> GetLatitudeFunc; public double Latitude => GetLatitudeFunc.Invoke();
-        Func<double> GetLongitudeFunc; public double Longitude => GetLongitudeFunc.Invoke();
-        public override string ToString() { return $"({Latitude}, {Longitude})"; }
-        public override bool Equals(object obj)
-        {
-            // Check for null values and compare run-time types.
-            if (obj == null || GetType() != obj.GetType())
-                return false;
-
-            var item = (CoordinateRef)obj;
-            return (Latitude == item.Latitude) && (Longitude == item.Longitude);
-        }
-        public static bool operator ==(CoordinateRef x, CoordinateRef y) => Equals(x, y);
-        public static bool operator !=(CoordinateRef x, CoordinateRef y) => !Equals(x, y);
-        public override int GetHashCode()
-        {
-            return Latitude.GetHashCode() ^ Longitude.GetHashCode();
-        }
-    }
-    public partial class LayerElement
+    public partial class LayerElement : GeographyRouter.ILayerElement
     {
         public void Reset(Layer layer)
         {
@@ -334,7 +299,7 @@ namespace GeographyModel
         public void ResetRouting()
         {
             Routed = false;
-            Coordinates = new List<CoordinateRef>();
+            Coordinates = new List<GeographyRouter.CoordinateRef>();
             CoordinateFirst = null;
             CoordinateLast = null;
             //-----------
@@ -342,7 +307,7 @@ namespace GeographyModel
             {
                 var i1 = i * 2;
                 var i2 = (i * 2) + 1;
-                Coordinates.Add(new CoordinateRef(() => Points[i1], () => Points[i2]));
+                Coordinates.Add(new GeographyRouter.CoordinateRef(() => Points[i1], () => Points[i2]));
                 //Coordinates.Add(new CoordinateRef(Points[i1], Points[i2]));
             }
 
@@ -352,11 +317,13 @@ namespace GeographyModel
         [IgnoreDataMember, ScriptIgnore]
         public bool Routed { get; set; }
         [IgnoreDataMember, ScriptIgnore]
-        public List<CoordinateRef> Coordinates { get; private set; }
+        public GeographyRouter.LayerGeographyType GeographyType => Layer.GeographyType;
         [IgnoreDataMember, ScriptIgnore]
-        public CoordinateRef CoordinateFirst { get; private set; }
+        public List<GeographyRouter.CoordinateRef> Coordinates { get; private set; }
         [IgnoreDataMember, ScriptIgnore]
-        public CoordinateRef CoordinateLast { get; private set; }
+        public GeographyRouter.CoordinateRef CoordinateFirst { get; private set; }
+        [IgnoreDataMember, ScriptIgnore]
+        public GeographyRouter.CoordinateRef CoordinateLast { get; private set; }
 
         [IgnoreDataMember, ScriptIgnore]
         public double DistanceInKm => CalculateDistance(this);
@@ -408,7 +375,7 @@ namespace GeographyModel
         Func<Guid, LayerElement> GetElementById_Func; protected LayerElement GetElement(Guid id) => GetElementById_Func?.Invoke(id);
         public abstract void Add(LayerElement element);
         public abstract void Remove(LayerElement element);
-        public abstract void HitTest(ref double latitude, ref double longitude, ref List<LayerElement> result, bool justNotRoute);
+        public abstract void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute);
     }
 
     public partial class LayerElementsMatrixByPoint : LayerElementsMatrix
@@ -455,7 +422,7 @@ namespace GeographyModel
             lookupsByElements.Remove(element.Id);
         }
 
-        public override void HitTest(ref double latitude, ref double longitude, ref List<LayerElement> result, bool justNotRoute)
+        public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute)
         {
             var key1 = CreateKey1(latitude, longitude);
             if (lookups.ContainsKey(key1) == false) return;
@@ -506,7 +473,7 @@ namespace GeographyModel
             if (elements.ContainsKey(element.Id) == false) return;
             else elements.Remove(element.Id);
         }
-        public override void HitTest(ref double latitude, ref double longitude, ref List<LayerElement> result, bool justNotRoute)
+        public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute)
         {
 
         }

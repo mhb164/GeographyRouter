@@ -261,7 +261,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     }
 
     public UpdateResult Update(DomainValue input) => WriteByLock(() => update(input));// Domain.GenerateKey(layercode, fieldcode), Guid.Empty, code, value);;);
-                                                                                                         //private DomainValue updateDomain(string key, Guid id, long code, string value)
+                                                                                      //private DomainValue updateDomain(string key, Guid id, long code, string value)
     private UpdateResult update(DomainValue input, bool logVersion = true)
     {
         var domain = default(Domain);
@@ -383,7 +383,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (element.Activation)
         {
             // layersMatrix[element.Layer.Id].Add(element);
-            if (element.Layer.IsElectrical && (element.Layer.GeographyType == LayerGeographyType.Point || element.Layer.GeographyType == LayerGeographyType.Polyline))
+            if (element.Layer.IsElectrical && (element.Layer.GeographyType == GeographyRouter.LayerGeographyType.Point || element.Layer.GeographyType == GeographyRouter.LayerGeographyType.Polyline))
                 ElecricalMatrix.Add(element);
         }
 
@@ -466,13 +466,13 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             element.ResetRouting();
         }
     });
-    public List<LayerElement> GetRoutingSources() => ReadByLock(() =>
+    public List<GeographyRouter.ILayerElement> GetRoutingSources() => ReadByLock(() =>
     {
-        if (layers.ContainsKey("MVPT_HEADER") == false) return new List<LayerElement>();
+        if (layers.ContainsKey("MVPT_HEADER") == false) return new List<GeographyRouter.ILayerElement>();
         var layer = layers["MVPT_HEADER"];
-        return elementsByLayerId[layer.Id].ToList();
+        return elementsByLayerId[layer.Id].ToList<GeographyRouter.ILayerElement>();
     });
-    public void RoutingHitTest(double latitude, double longitude, ref List<LayerElement> result, bool justNotRoute) /*=> Lock.PerformRead(() =>*/
+    public void RoutingHitTest(double latitude, double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute) /*=> Lock.PerformRead(() =>*/
     {
         //var result = new List<LayerElement>();
         ElecricalMatrix.HitTest(ref latitude, ref longitude, ref result, justNotRoute);
