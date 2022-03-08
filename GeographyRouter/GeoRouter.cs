@@ -1,5 +1,4 @@
-﻿using GeographyModel;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,7 +32,7 @@ namespace GeographyRouter
             else return null;
         }
 
-        private void Add(LayerElement element, RoutingItem routingItem)
+        private void Add(ILayerElement element, RoutingItem routingItem)
         {
             if (routingPairs.ContainsKey(element.Code)) return;
             element.Routed = true;

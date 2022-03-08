@@ -78,6 +78,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GeographyRouter\GeographyRouter.csproj">
+      <Project>{cbe819a9-b13b-4c6f-940e-8f3167fa818a}</Project>
+      <Name>GeographyRouter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Geography\Geography.csproj">
       <Project>{fd19a02c-5eb4-4914-9e28-3efa3cd52672}</Project>
       <Name>Geography</Name>
