@@ -48,7 +48,6 @@
     <Compile Include="Model.Dependency\CoordinateRef.cs" />
     <Compile Include="Model.Dependency\IGeoRepository.cs" />
     <Compile Include="Model.Dependency\ILayerElement.cs" />
-    <Compile Include="Model.Dependency\LayerGeographyType.cs" />
     <Compile Include="Model\Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\RoutingItem.cs" />

@@ -8,18 +8,16 @@ namespace GeographyRouter
 {
     public interface ILayerElement
     {
-        //Guid Id { get; set; }
-        //bool Activation { get; set; }
         string Code { get; }
-        //long Version { get; set; }
-        //double[] Points { get; set; }
-        //string FieldValuesText { get; set; }
-
-        bool Routed { get; set; }
-        bool IsClosed { get; }
+        bool Connected { get; }
         List<CoordinateRef> Coordinates { get; }
         CoordinateRef CoordinateFirst { get; }
         CoordinateRef CoordinateLast { get; }
-        LayerGeographyType GeographyType { get; }
+
+        bool GeographyTypeIsPoint { get; }
+        bool GeographyTypeIsLine { get; }
+        bool GeographyTypeIsPolygon { get; }
+
+        bool Routed { get; set; }
     }
 }

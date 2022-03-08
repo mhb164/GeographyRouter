@@ -4,21 +4,18 @@ namespace GeographyRouter
 {
     public class CoordinateRef
     {
-        //public CoordinateRef(double latitude, double longitude)
-        //{
-        //    Latitude = latitude;
-        //    Longitude = longitude;
-        //}
-        //public double Latitude { get; set; }
-        //public double Longitude { get; set; }
-
-        public CoordinateRef(Func<double> getLatitudeFunc, Func<double> getLongitudeFunc)
+        private readonly Func<double> _getLatitudeAccessor;
+        private readonly Func<double> _getLongitudeAccessor;
+        public CoordinateRef(Func<double> getLatitudeAccessor, Func<double> getLongitudeAccessor)
         {
-            GetLatitudeFunc = getLatitudeFunc;
-            GetLongitudeFunc = getLongitudeFunc;
+            _getLatitudeAccessor = getLatitudeAccessor;
+            _getLongitudeAccessor = getLongitudeAccessor;
         }
-        Func<double> GetLatitudeFunc; public double Latitude => GetLatitudeFunc.Invoke();
-        Func<double> GetLongitudeFunc; public double Longitude => GetLongitudeFunc.Invoke();
+
+
+        public double Latitude => _getLatitudeAccessor.Invoke();
+        public double Longitude => _getLongitudeAccessor.Invoke();
+
         public override string ToString() { return $"({Latitude}, {Longitude})"; }
         public override bool Equals(object obj)
         {
@@ -31,10 +28,6 @@ namespace GeographyRouter
         }
         public static bool operator ==(CoordinateRef x, CoordinateRef y) => Equals(x, y);
         public static bool operator !=(CoordinateRef x, CoordinateRef y) => !Equals(x, y);
-        public override int GetHashCode()
-        {
-            return Latitude.GetHashCode() ^ Longitude.GetHashCode();
-        }
+        public override int GetHashCode() => Latitude.GetHashCode() ^ Longitude.GetHashCode();
     }
-
 }

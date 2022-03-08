@@ -98,12 +98,12 @@ namespace GeographyRouter
             assistant.Add(element, node);
 
             var HitTestResult = assistant.HitTest(node.Coordinate, false);
-            foreach (var item in HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Point))
+            foreach (var item in HitTestResult.Where(x => x.GeographyTypeIsPoint))
             {
                 if (item == element) continue;
                 if (item.Routed)
                     throw new ApplicationException($"Node already analyzed! ({node.Coordinate}, {item.Code})");
-                if (item.IsClosed == false)
+                if (item.Connected == false)
                 {
                     //continue;
                     return node;
@@ -113,7 +113,7 @@ namespace GeographyRouter
                 node.Add(item);
             }
 
-            foreach (var item in HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Polyline))
+            foreach (var item in HitTestResult.Where(x => x.GeographyTypeIsLine))
             {
                 if (item.Routed) continue;
                 if (node.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
@@ -156,8 +156,8 @@ namespace GeographyRouter
                         throw new ApplicationException($"Route output is null ({string.Join(",", route.Elements.Select(x => x.Code))}, input: {route.Input})");
                 }
                 var HitTestResult = assistant.HitTest(route.Output, true);
-                var HitTestResultPoints = HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Point).ToList();
-                var HitTestResultLines = HitTestResult.Where(x => x.GeographyType == LayerGeographyType.Polyline && x != element).ToList();
+                var HitTestResultPoints = HitTestResult.Where(x => x.GeographyTypeIsPoint).ToList();
+                var HitTestResultLines = HitTestResult.Where(x => x.GeographyTypeIsLine && x != element).ToList();
 
                 if (HitTestResultPoints.Count() > 0)//Node
                 {

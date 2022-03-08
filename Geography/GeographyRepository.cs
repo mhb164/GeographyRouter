@@ -383,7 +383,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (element.Activation)
         {
             // layersMatrix[element.Layer.Id].Add(element);
-            if (element.Layer.IsElectrical && (element.Layer.GeographyType == GeographyRouter.LayerGeographyType.Point || element.Layer.GeographyType == GeographyRouter.LayerGeographyType.Polyline))
+            if (element.Layer.IsElectrical && (element.Layer.GeographyType == LayerGeographyType.Point || element.Layer.GeographyType == LayerGeographyType.Polyline))
                 ElecricalMatrix.Add(element);
         }
 

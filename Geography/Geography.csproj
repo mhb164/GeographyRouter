@@ -118,8 +118,18 @@
     <Compile Include="Assistants\Map.Projections\IO\WKTStreamTokenizer.cs" />
     <Compile Include="GeographyRepository.IO.cs" />
     <Compile Include="GeographyRepository.cs" />
-    <Compile Include="Model\DataModel.cs" />
-    <Compile Include="Model\DataModel.Runtime.cs" />
+    <Compile Include="Model\Layer.Runtime.cs" />
+    <Compile Include="Model\LayerField.Runtime.cs" />
+    <Compile Include="Model\Domain.cs" />
+    <Compile Include="Model\DomainValue.Runtime.cs" />
+    <Compile Include="Model\LayerElement.ILayerElement.cs" />
+    <Compile Include="Model\LayerElement.cs" />
+    <Compile Include="Model\LayerElement.Runtime.cs" />
+    <Compile Include="Model\DomainValue.cs" />
+    <Compile Include="Model\Layer.cs" />
+    <Compile Include="Model\LayerElementsMatrix.cs" />
+    <Compile Include="Model\LayerField.cs" />
+    <Compile Include="Model\LayerGeographyType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UpdateResult.cs" />
   </ItemGroup>

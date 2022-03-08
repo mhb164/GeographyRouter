@@ -1,4 +1,4 @@
-﻿namespace GeographyRouter
+﻿namespace GeographyModel
 {
     public enum LayerGeographyType
     {
