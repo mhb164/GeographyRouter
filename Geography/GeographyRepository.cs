@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 public partial class GeographyRepository : GeographyRouter.IGeoRepository
 {
     readonly Action<string> LogAction;
@@ -58,6 +57,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     }
     #endregion 
     Func<Layer, bool> SaveLayer_Func; private void Save(Layer item) => SaveLayer_Func?.Invoke(item);
+    Func<Layer, bool> DeleteLayer_Func; private void Delete(Layer item) => DeleteLayer_Func?.Invoke(item);
+    Func<bool> DeleteAllLayers_Func; private void DeleteAllLayers() => DeleteAllLayers_Func?.Invoke();
     Func<DomainValue, bool> SaveDomainValue_Func; private void Save(DomainValue item) => SaveDomainValue_Func?.Invoke(item);
     Func<LayerElement, bool> SaveLayerElement_Func; private void Save(LayerElement item) => SaveLayerElement_Func?.Invoke(item);
 
@@ -77,12 +78,16 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         versionChangeRequestStopwatch.Restart();
         //---------------------
         SaveLayer_Func = null;
+        DeleteLayer_Func = null;
+        DeleteAllLayers_Func = null;
         SaveDomainValue_Func = null;
         SaveLayerElement_Func = null;
     }
-    public void EndInitial(Func<Layer, bool> saveLayer_Func, Func<DomainValue, bool> saveDomainValue_Func, Func<LayerElement, bool> saveLayerElement_Func)
+    public void EndInitial(Func<Layer, bool> saveLayer_Func, Func<Layer, bool> deleteLayer_Func, Func<bool> deleteAllLayers_Func, Func<DomainValue, bool> saveDomainValue_Func, Func<LayerElement, bool> saveLayerElement_Func)
     {
         SaveLayer_Func = saveLayer_Func;
+        DeleteLayer_Func = deleteLayer_Func;
+        DeleteAllLayers_Func = deleteAllLayers_Func;
         SaveDomainValue_Func = saveDomainValue_Func;
         SaveLayerElement_Func = saveLayerElement_Func;
     }
@@ -120,6 +125,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     }
     #endregion Version
 
+    public bool StructureLocked => ReadByLock(() => elements.Count > 0);
     #region Layers
     Dictionary<string, Layer> layers = new Dictionary<string, Layer>();
     //Dictionary<Guid, LayerElementsMatrix> layersMatrix = new Dictionary<Guid, LayerElementsMatrix>();
@@ -130,6 +136,15 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     }
 
     public UpdateResult Update(Layer input) => WriteByLock(() => update(input));
+    public UpdateResult Update(List<Layer> input) => WriteByLock(() =>
+    {
+        foreach (var item in input)
+        {
+            var updateResult = update(item);
+            if (updateResult.Result == false) return updateResult;
+        }
+        return UpdateResult.Success();
+    });
     public UpdateResult Update(string layercode, LayerField inputField) => WriteByLock(() =>
     {
         if (layers.ContainsKey(layercode) == false) return UpdateResult.Failed($"UpdateLayer(Code:{layercode}) not exists!");
@@ -138,17 +153,13 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (field != null)
         {
             field.Displayname = inputField.Displayname;
-            field.Activation = inputField.Activation;
-            field.Type = inputField.Type;
         }
         else
         {
             field = new LayerField()
             {
-                Activation = inputField.Activation,
                 Code = inputField.Code,
                 Displayname = inputField.Displayname,
-                Type = inputField.Type,
                 Index = layer.Fields.Count(),
             };
             layer.Fields.Add(field);
@@ -184,8 +195,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             //}
 
         }
-        layer.Activation = input.Activation;
         layer.Displayname = input.Displayname;
+        layer.IsRoutingSource = input.IsRoutingSource;
         layer.IsElectrical = input.IsElectrical;
         layer.IsDisconnector = input.IsDisconnector;
         layer.OperationStatusFieldCode = input.OperationStatusFieldCode;
@@ -199,17 +210,13 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                 if (field != null)
                 {
                     field.Displayname = inputField.Displayname;
-                    field.Activation = inputField.Activation;
-                    field.Type = inputField.Type;
                 }
                 else
                 {
                     field = new LayerField()
                     {
-                        Activation = inputField.Activation,
                         Code = inputField.Code,
                         Displayname = inputField.Displayname,
-                        Type = inputField.Type,
                         Index = layer.Fields.Count(),
                     };
                     layer.Fields.Add(field);
@@ -222,11 +229,19 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     }
 
     public List<Layer> Layers => ReadByLock(() => layers.Values.ToList());
-    public Layer GetLayer(string layercode) => ReadByLock(() =>
+    public Layer GetLayer(string layercode) => ReadByLock(() => getLayerWithoutLock(layercode));
+    public Layer GetLayer(Guid layerId) => ReadByLock(() => getLayerWithoutLock(layerId));
+
+    Layer getLayerWithoutLock(string layercode)
     {
         if (layers.ContainsKey(layercode)) return layers[layercode];
         else return null;
-    });
+    }
+    Layer getLayerWithoutLock(Guid layerId)
+    {
+        return layers.Values.FirstOrDefault(x => x.Id == layerId);//TODO: add map and reduce
+    }
+
     public List<Layer> GetLayers(IEnumerable<string> layercodes) => ReadByLock(() =>
     {
         var result = new List<Layer>();
@@ -240,7 +255,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     public List<string> LayersCodes => ReadByLock(() => layers.Keys.ToList());
     public List<string> DisconnectorLayersCodes => ReadByLock(() => layers.Where(x => x.Value.IsDisconnector).Select(x => x.Key).ToList());
 
-
     public long GetLayerElementCount(string layerCode) => ReadByLock(() =>
     {
         if (layers.ContainsKey(layerCode) == false) return -1;
@@ -251,6 +265,207 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             else return 0;
         }
     });
+
+    public UpdateResult Excecute(List<CreateLayerCommand> commands) => WriteByLock(() =>
+    {
+        foreach (var command in commands)
+        {
+            var updateResult = update(command.Createlayer());
+            if (updateResult.Result == false) return updateResult;
+        }
+        return UpdateResult.Success();
+    });
+
+    public UpdateResult Excecute(CreateLayerCommand command) => WriteByLock(() =>
+    {
+        return update(command.Createlayer());
+    });
+
+    public UpdateResult Excecute(DeleteLayerCommand command) => WriteByLock(() =>
+    {
+        if (elements.Count > 0)
+            return UpdateResult.Failed("امکان حذف با وجود اطلاعات نیست!");
+
+        var layer = getLayerWithoutLock(command.LayerId);
+        if (layer == null)
+            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+
+
+        layers.Remove(layer.Code);
+        Delete(layer);
+        return UpdateResult.Success();
+
+    });
+
+    public UpdateResult Excecute(DeleteAllLayersCommand command) => WriteByLock(() =>
+    {
+        if (elements.Count > 0)
+            return UpdateResult.Failed("امکان حذف با وجود اطلاعات نیست!");
+
+        layers.Clear();
+        DeleteAllLayers();
+        return UpdateResult.Success();
+    });
+
+    public UpdateResult Excecute(MakeLayerAsRoutingSourceCommand command) => WriteByLock(() =>
+    {
+        var layer = getLayerWithoutLock(command.LayerId);
+        if (layer == null)
+            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+        if (layer.IsRoutingSource)
+            return UpdateResult.Failed("این لایه هم اکنون به عنوان منبع مسیریابی است!");
+
+        if (!layer.IsElectrical)
+            return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
+
+        foreach (var item in layers.Values)
+        {
+            var isRoutingSource = item.Id == command.LayerId;
+            if (item.IsRoutingSource == isRoutingSource)
+            {
+                continue;
+            }
+
+            item.IsRoutingSource = isRoutingSource;
+            Save(item);
+        }
+
+        return UpdateResult.Success();
+    });
+
+    public UpdateResult Excecute(UpdateLayerCommand command) => WriteByLock(() =>
+    {
+        var layer = getLayerWithoutLock(command.LayerId);
+        if (layer == null)
+            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+
+        //------------------------
+        var changed = false;
+        changed |= command.Displayname != layer.Displayname;
+        changed |= command.DisplaynameFormat != layer.ElementDisplaynameFormat;
+
+        if (changed == false)
+            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
+        //------------------------
+        if (!layer.CheckDisplaynameFormat(command.DisplaynameFormat, out var errorMessage))
+            return UpdateResult.Failed($"قالب نمایش المان ها صحیح نیست ({errorMessage})!");
+        //------------------------
+        layer.Displayname = command.Displayname;
+        layer.ElementDisplaynameFormat = command.DisplaynameFormat;
+
+        Save(layer);
+
+        return UpdateResult.Success();
+    });
+
+    public UpdateResult Excecute(UpdateLayerRoutingCommand command) => WriteByLock(() =>
+    {
+        var layer = getLayerWithoutLock(command.LayerId);
+        if (layer == null)
+            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+
+        //------------------------
+        var changed = false;
+        changed |= command.UseInRouting != layer.IsElectrical;
+        changed |= command.ConnectivityStateFieldCode != layer.OperationStatusFieldCode;
+        changed |= command.ConnectivityStateOpenValue != layer.OperationStatusOpenValue;
+        changed |= command.Disconnectable != layer.IsDisconnector;
+
+        if (changed == false)
+            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
+        //------------------------
+        if (layer.IsRoutingSource)
+        {
+            if (!command.UseInRouting)
+                return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
+        }
+
+        if (!string.IsNullOrWhiteSpace(command.ConnectivityStateFieldCode))
+        {
+            var connectivityStateField = layer.Fields.FirstOrDefault(x => x.Code == command.ConnectivityStateFieldCode);
+            if (connectivityStateField == null)
+                return UpdateResult.Failed($"فیلدی با کُدِ {command.ConnectivityStateFieldCode} پیدا نشد!");
+        }
+
+        //------------------------
+        layer.IsElectrical = command.UseInRouting;
+        layer.OperationStatusFieldCode = command.ConnectivityStateFieldCode;
+        layer.OperationStatusOpenValue = command.ConnectivityStateOpenValue;
+        layer.IsDisconnector = command.Disconnectable;
+
+        Save(layer);
+
+        return UpdateResult.Success();
+    });
+
+    public UpdateResult Excecute(CreateLayerFieldCommand command) => WriteByLock(() =>
+    {
+        var layer = getLayerWithoutLock(command.LayerId);
+        if (layer == null)
+            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+
+        var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
+        if (existingField != null)
+            return UpdateResult.Failed($"فیلد با کُدِ {command.Code} قبلا ثبت شده است!");
+
+        layer.Fields.Add(new LayerField()
+        {
+            Code = command.Code,
+            Displayname = command.Displayname,
+            Index = layer.Fields.Count(),
+        });
+
+        Save(layer);
+        return UpdateResult.Success();
+    });
+
+    public UpdateResult Excecute(UpdateLayerFieldCommand command) => WriteByLock(() =>
+    {
+        var layer = getLayerWithoutLock(command.LayerId);
+        if (layer == null)
+            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+
+        var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
+        if (existingField == null)
+            return UpdateResult.Failed($"فیلد با کُدِ {command.Code} پیدا نشد!");
+
+        //------------------------
+        var changed = false;
+        changed |= command.Displayname != existingField.Displayname;
+
+        if (changed == false)
+            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
+        //------------------------
+
+        existingField.Displayname = command.Displayname;
+
+        Save(layer);
+        return UpdateResult.Success();
+    });
+
+    public UpdateResult Excecute(DeleteLayerFieldCommand command) => WriteByLock(() =>
+    {
+        if (elements.Count > 0)
+            return UpdateResult.Failed("امکان حذف با وجود اطلاعات نیست!");
+
+        var layer = getLayerWithoutLock(command.LayerId);
+        if (layer == null)
+            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+
+        var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
+        if (existingField == null)
+            return UpdateResult.Failed($"فیلد با کُدِ {command.Code} پیدا نشد!");
+
+        if (layer.OperationStatusFieldCode == existingField.Code)
+            return UpdateResult.Failed($"امکان حذف فیلد تشخیص وضعیت نیست!");
+
+        layer.Fields.Remove(existingField);
+        layer.ReIndexFields();
+
+        Save(layer);
+        return UpdateResult.Success();
+    });
+
     #endregion Layers
 
     #region Domains
@@ -332,6 +547,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     #endregion Domains
 
     #region Elements
+    public long ElementsCount => ReadByLock(() => elements.Count);
     Dictionary<string, LayerElement> elements = new Dictionary<string, LayerElement>();
     Dictionary<Guid, LayerElement> elementsById = new Dictionary<Guid, LayerElement>();
     Dictionary<Guid, List<LayerElement>> elementsByLayerId = new Dictionary<Guid, List<LayerElement>>();
@@ -407,7 +623,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         return UpdateResult.Success();
     });
 
-    public int ElementCount => elements.Count;
     public LayerElement this[string code] => GetElement(code);
     public LayerElement GetElement(string code)
     {

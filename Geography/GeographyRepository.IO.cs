@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
-public partial class GeographyRepository 
+public partial class GeographyRepository : GeographyRouter.IGeoRepository
 {
     public void Save(string root, Action<string> logAction) => Save(this, root, logAction);
     public static void Save(GeographyRepository repository, string root, Action<string> logAction)
@@ -74,7 +74,7 @@ public partial class GeographyRepository
             repository.Initial(layerCode, layerElements);
 
         }
-        repository.EndInitial(null, null, null);
+        repository.EndInitial(null, null, null, null, null);
 
         return instance;
     }
