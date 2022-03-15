@@ -1,5 +1,6 @@
 ﻿using GeographyModel;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -125,7 +126,10 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     }
     #endregion Version
 
-    public bool StructureLocked => ReadByLock(() => elements.Count > 0);
+    const string StructureLockedErrorMessage = "اطلاعات المان‌ها ثبت شده و امکان تغییر ساختاری وجود ندارد!";
+
+    public bool StructureLocked => ReadByLock(() => isStructureLocked);
+    private bool isStructureLocked => elements.Count > 0;
     #region Layers
     Dictionary<string, Layer> layers = new Dictionary<string, Layer>();
     //Dictionary<Guid, LayerElementsMatrix> layersMatrix = new Dictionary<Guid, LayerElementsMatrix>();
@@ -266,205 +270,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
     });
 
-    public UpdateResult Excecute(List<CreateLayerCommand> commands) => WriteByLock(() =>
-    {
-        foreach (var command in commands)
-        {
-            var updateResult = update(command.Createlayer());
-            if (updateResult.Result == false) return updateResult;
-        }
-        return UpdateResult.Success();
-    });
-
-    public UpdateResult Excecute(CreateLayerCommand command) => WriteByLock(() =>
-    {
-        return update(command.Createlayer());
-    });
-
-    public UpdateResult Excecute(DeleteLayerCommand command) => WriteByLock(() =>
-    {
-        if (elements.Count > 0)
-            return UpdateResult.Failed("امکان حذف با وجود اطلاعات نیست!");
-
-        var layer = getLayerWithoutLock(command.LayerId);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
-
-
-        layers.Remove(layer.Code);
-        Delete(layer);
-        return UpdateResult.Success();
-
-    });
-
-    public UpdateResult Excecute(DeleteAllLayersCommand command) => WriteByLock(() =>
-    {
-        if (elements.Count > 0)
-            return UpdateResult.Failed("امکان حذف با وجود اطلاعات نیست!");
-
-        layers.Clear();
-        DeleteAllLayers();
-        return UpdateResult.Success();
-    });
-
-    public UpdateResult Excecute(MakeLayerAsRoutingSourceCommand command) => WriteByLock(() =>
-    {
-        var layer = getLayerWithoutLock(command.LayerId);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
-        if (layer.IsRoutingSource)
-            return UpdateResult.Failed("این لایه هم اکنون به عنوان منبع مسیریابی است!");
-
-        if (!layer.IsElectrical)
-            return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
-
-        foreach (var item in layers.Values)
-        {
-            var isRoutingSource = item.Id == command.LayerId;
-            if (item.IsRoutingSource == isRoutingSource)
-            {
-                continue;
-            }
-
-            item.IsRoutingSource = isRoutingSource;
-            Save(item);
-        }
-
-        return UpdateResult.Success();
-    });
-
-    public UpdateResult Excecute(UpdateLayerCommand command) => WriteByLock(() =>
-    {
-        var layer = getLayerWithoutLock(command.LayerId);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
-
-        //------------------------
-        var changed = false;
-        changed |= command.Displayname != layer.Displayname;
-        changed |= command.DisplaynameFormat != layer.ElementDisplaynameFormat;
-
-        if (changed == false)
-            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
-        //------------------------
-        if (!layer.CheckDisplaynameFormat(command.DisplaynameFormat, out var errorMessage))
-            return UpdateResult.Failed($"قالب نمایش المان ها صحیح نیست ({errorMessage})!");
-        //------------------------
-        layer.Displayname = command.Displayname;
-        layer.ElementDisplaynameFormat = command.DisplaynameFormat;
-
-        Save(layer);
-
-        return UpdateResult.Success();
-    });
-
-    public UpdateResult Excecute(UpdateLayerRoutingCommand command) => WriteByLock(() =>
-    {
-        var layer = getLayerWithoutLock(command.LayerId);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
-
-        //------------------------
-        var changed = false;
-        changed |= command.UseInRouting != layer.IsElectrical;
-        changed |= command.ConnectivityStateFieldCode != layer.OperationStatusFieldCode;
-        changed |= command.ConnectivityStateOpenValue != layer.OperationStatusOpenValue;
-        changed |= command.Disconnectable != layer.IsDisconnector;
-
-        if (changed == false)
-            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
-        //------------------------
-        if (layer.IsRoutingSource)
-        {
-            if (!command.UseInRouting)
-                return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
-        }
-
-        if (!string.IsNullOrWhiteSpace(command.ConnectivityStateFieldCode))
-        {
-            var connectivityStateField = layer.Fields.FirstOrDefault(x => x.Code == command.ConnectivityStateFieldCode);
-            if (connectivityStateField == null)
-                return UpdateResult.Failed($"فیلدی با کُدِ {command.ConnectivityStateFieldCode} پیدا نشد!");
-        }
-
-        //------------------------
-        layer.IsElectrical = command.UseInRouting;
-        layer.OperationStatusFieldCode = command.ConnectivityStateFieldCode;
-        layer.OperationStatusOpenValue = command.ConnectivityStateOpenValue;
-        layer.IsDisconnector = command.Disconnectable;
-
-        Save(layer);
-
-        return UpdateResult.Success();
-    });
-
-    public UpdateResult Excecute(CreateLayerFieldCommand command) => WriteByLock(() =>
-    {
-        var layer = getLayerWithoutLock(command.LayerId);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
-
-        var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
-        if (existingField != null)
-            return UpdateResult.Failed($"فیلد با کُدِ {command.Code} قبلا ثبت شده است!");
-
-        layer.Fields.Add(new LayerField()
-        {
-            Code = command.Code,
-            Displayname = command.Displayname,
-            Index = layer.Fields.Count(),
-        });
-
-        Save(layer);
-        return UpdateResult.Success();
-    });
-
-    public UpdateResult Excecute(UpdateLayerFieldCommand command) => WriteByLock(() =>
-    {
-        var layer = getLayerWithoutLock(command.LayerId);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
-
-        var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
-        if (existingField == null)
-            return UpdateResult.Failed($"فیلد با کُدِ {command.Code} پیدا نشد!");
-
-        //------------------------
-        var changed = false;
-        changed |= command.Displayname != existingField.Displayname;
-
-        if (changed == false)
-            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
-        //------------------------
-
-        existingField.Displayname = command.Displayname;
-
-        Save(layer);
-        return UpdateResult.Success();
-    });
-
-    public UpdateResult Excecute(DeleteLayerFieldCommand command) => WriteByLock(() =>
-    {
-        if (elements.Count > 0)
-            return UpdateResult.Failed("امکان حذف با وجود اطلاعات نیست!");
-
-        var layer = getLayerWithoutLock(command.LayerId);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
-
-        var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
-        if (existingField == null)
-            return UpdateResult.Failed($"فیلد با کُدِ {command.Code} پیدا نشد!");
-
-        if (layer.OperationStatusFieldCode == existingField.Code)
-            return UpdateResult.Failed($"امکان حذف فیلد تشخیص وضعیت نیست!");
-
-        layer.Fields.Remove(existingField);
-        layer.ReIndexFields();
-
-        Save(layer);
-        return UpdateResult.Success();
-    });
 
     #endregion Layers
 
@@ -566,8 +371,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (elements.ContainsKey(input.Code))
         {
             element = elements[input.Code];
-            if (element.Layer.Id != layer.Id) return UpdateResult.Failed($"UpdateElement(Layer mismatch!)");
-            if (element.Version > input.Version) return UpdateResult.Failed($"UpdateElement(Version passed!)");
+            if (element.Layer.Id != layer.Id) return UpdateResult.Failed($"[{layer.Code}-{input.Code}] UpdateElement(Layer mismatch!)");
+            if (element.Version > input.Version) return UpdateResult.Failed($"[{layer.Code}-{input.Code}] UpdateElement(Version passed!)");
             //layersMatrix[element.Layer.Id].Remove(element);
             ElecricalMatrix.Remove(element);
         }
@@ -605,8 +410,9 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
         element.ResetDisplayname(getDomain);
         Save(element);
-        return UpdateResult.Success();
+        return UpdateResult.Success($"[{layer.Code}-{input.Code}] updated.");
     }
+
     public UpdateResult RemoveElement(string layercode, string elementcode, long requestVersion) => WriteByLock(() =>
     {
         if (layers.ContainsKey(layercode) == false) return UpdateResult.Failed($"RemoveElement(LayerCode:{layercode}) not exists!");
@@ -624,12 +430,15 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     });
 
     public LayerElement this[string code] => GetElement(code);
+
     public LayerElement GetElement(string code)
     {
         if (elements.ContainsKey(code)) return elements[code];
         else return null;
     }
+
     public List<LayerElement> this[IEnumerable<string> codes] => GetElements(codes);
+
     public List<LayerElement> GetElements(IEnumerable<string> codes)
     {
         var result = new List<LayerElement>();
@@ -641,11 +450,13 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
         return result;
     }
+
     public LayerElement GetElement(Guid id)
     {
         if (elementsById.ContainsKey(id)) return elementsById[id];
         else return null;
     }
+
     public IEnumerable<LayerElement> GetElements(IEnumerable<Layer> owners, long version)
     {
         foreach (var owner in owners)
@@ -659,11 +470,13 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
 
     }
+
     public IEnumerable<LayerElement> GetElements(Layer owner)
     {
         if (elementsByLayerId.ContainsKey(owner.Id) == false) return new List<LayerElement>();
         return elementsByLayerId[owner.Id];
     }
+
     //internal IEnumerable<LayerElement> HitTest(IEnumerable<Guid> LayerIds, double Latitude, double Longitude)
     //{
     //    var result = new List<LayerElement>();
@@ -672,39 +485,4 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     //    return result;
     //}
     #endregion Elements
-
-    #region GeographyRouter.IGeoRepository
-    public void ResetRouting() => WriteByLock(() =>
-    {
-        foreach (var element in elements.Values)
-        {
-            element.ResetRouting();
-        }
-    });
-    public List<GeographyRouter.ILayerElement> GetRoutingSources() => ReadByLock(() =>
-    {
-        if (layers.ContainsKey("MVPT_HEADER") == false) return new List<GeographyRouter.ILayerElement>();
-        var layer = layers["MVPT_HEADER"];
-        return elementsByLayerId[layer.Id].ToList<GeographyRouter.ILayerElement>();
-    });
-    public void RoutingHitTest(double latitude, double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute) /*=> Lock.PerformRead(() =>*/
-    {
-        //var result = new List<LayerElement>();
-        ElecricalMatrix.HitTest(ref latitude, ref longitude, ref result, justNotRoute);
-
-        //return result;
-    }//);
-
-    public List<string> GetNotRoutedCodes() => ReadByLock(() =>
-    {
-        var result = new List<string>();
-        foreach (var element in elements.Values)
-        {
-            if (element.Layer.IsElectrical == false) continue;
-            if (element.Routed) continue;
-            else result.Add(element.Code);
-        }
-        return result;
-    });
-    #endregion Routing
 }

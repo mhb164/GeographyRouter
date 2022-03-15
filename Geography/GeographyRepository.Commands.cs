@@ -26,7 +26,7 @@ public partial class GeographyRepository
             Displayname = displayname.Trim();
 
             var fieldCodes = fields.Select(x => x.Code);
-            if(fieldCodes.Count()!= fieldCodes.Distinct().Count())
+            if (fieldCodes.Count() != fieldCodes.Distinct().Count())
                 throw new ArgumentException("کُدِ یکی از فیلدها تکراری است!");
             Fields = fields.ToList();
         }
@@ -106,7 +106,7 @@ public partial class GeographyRepository
             DisplaynameFormat = displaynameFormat.Trim();
         }
     }
-   
+
     public class UpdateLayerRoutingCommand
     {
         public readonly Guid LayerId;
@@ -197,4 +197,45 @@ public partial class GeographyRepository
             Code = code.ToUpperInvariant().Trim();
         }
     }
+
+
+    public class UpdateElementPackageCommand
+    {
+        public readonly string LayerCode;
+        public readonly string[] Descriptors;
+        public readonly IEnumerable<UpdateElementPackageItem> Items;
+
+        public UpdateElementPackageCommand(string layerCode, string[] descriptors, IEnumerable<UpdateElementPackageItem> items)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد خالی وارد شده است!");
+            LayerCode = layerCode.ToUpperInvariant().Trim();
+
+            LayerCode = layerCode;
+            Descriptors = descriptors.Select(x => x.ToUpperInvariant().Trim()).ToArray();
+            Items = items;
+        }
+
+        public override string ToString() => $"{LayerCode}";
+    }
+
+    public class UpdateElementPackageItem
+    {
+        public readonly string ElementCode;
+        public readonly DateTime Timetag;
+        public readonly double[] Points;
+        public readonly string[] DescriptorValues;
+
+        public UpdateElementPackageItem(string elementCode, DateTime timetag, double[] points, string[] descriptorValues)
+        {
+            if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
+
+            ElementCode = elementCode;
+            Timetag = timetag;
+            Points = points;
+            DescriptorValues = descriptorValues;
+        }
+
+        public override string ToString() => $"{ElementCode}-{string.Join(", ", Points)}-{string.Join(", ", DescriptorValues)}";
+    }
+
 }
