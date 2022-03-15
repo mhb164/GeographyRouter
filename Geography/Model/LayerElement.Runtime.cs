@@ -8,7 +8,7 @@ using System.Web.Script.Serialization;
 
 namespace GeographyModel
 {
-    public partial class LayerElement 
+    public partial class LayerElement
     {
         public void Reset(Layer layer)
         {
@@ -21,7 +21,7 @@ namespace GeographyModel
 
         [IgnoreDataMember, ScriptIgnore]
         public Layer Layer { get; private set; }
-        
+
         [IgnoreDataMember, ScriptIgnore]
         public string Displayname { get; private set; }
 
@@ -116,7 +116,7 @@ namespace GeographyModel
             return bytes.ToArray();
         }
 
-                public static string TranslateFieldValues(List<string> values) => string.Join("♦", values);
+        public static string TranslateFieldValues(List<string> values) => string.Join("♦", values);
 
         public static bool TranslateShape(string shape, uint defaultSRID, out List<double> points, out string message)
         {
@@ -205,5 +205,5 @@ namespace GeographyModel
         }
         private static double Degree2Radian(double deg) => (deg * Math.PI / 180.0);
         private static double Radian2Degree(double rad) => (rad / Math.PI * 180.0);
-    }   
+    }
 }
