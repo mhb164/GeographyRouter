@@ -8,6 +8,17 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+public interface IGeographyRepositoryStorage
+{
+    bool Save(Layer item);
+    bool Delete(Layer item);
+    bool DeleteAllLayers();
+    bool Save(DomainValue item);
+    bool Save(LayerElement item);
+
+    void WaitFlush();
+}
+
 public partial class GeographyRepository : GeographyRouter.IGeoRepository
 {
     readonly Action<string> LogAction;
@@ -57,11 +68,14 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         finally { Lock.ExitReadLock(); }
     }
     #endregion 
-    Func<Layer, bool> SaveLayer_Func; private void Save(Layer item) => SaveLayer_Func?.Invoke(item);
-    Func<Layer, bool> DeleteLayer_Func; private void Delete(Layer item) => DeleteLayer_Func?.Invoke(item);
-    Func<bool> DeleteAllLayers_Func; private void DeleteAllLayers() => DeleteAllLayers_Func?.Invoke();
-    Func<DomainValue, bool> SaveDomainValue_Func; private void Save(DomainValue item) => SaveDomainValue_Func?.Invoke(item);
-    Func<LayerElement, bool> SaveLayerElement_Func; private void Save(LayerElement item) => SaveLayerElement_Func?.Invoke(item);
+
+    IGeographyRepositoryStorage Storage;
+    private void Save(Layer item) => Storage?.Save(item);
+    private void Delete(Layer item) => Storage?.Delete(item);
+    private void DeleteAllLayers() => Storage?.DeleteAllLayers();
+    private void Save(DomainValue item) => Storage?.Save(item);
+    private void Save(LayerElement item) => Storage?.Save(item);
+    private void WaitFlush() => Storage?.WaitFlush();
 
     public void BeginInitial()
     {
@@ -78,19 +92,11 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         version = 0;
         versionChangeRequestStopwatch.Restart();
         //---------------------
-        SaveLayer_Func = null;
-        DeleteLayer_Func = null;
-        DeleteAllLayers_Func = null;
-        SaveDomainValue_Func = null;
-        SaveLayerElement_Func = null;
+        Storage = null;
     }
-    public void EndInitial(Func<Layer, bool> saveLayer_Func, Func<Layer, bool> deleteLayer_Func, Func<bool> deleteAllLayers_Func, Func<DomainValue, bool> saveDomainValue_Func, Func<LayerElement, bool> saveLayerElement_Func)
+    public void EndInitial(IGeographyRepositoryStorage storage)
     {
-        SaveLayer_Func = saveLayer_Func;
-        DeleteLayer_Func = deleteLayer_Func;
-        DeleteAllLayers_Func = deleteAllLayers_Func;
-        SaveDomainValue_Func = saveDomainValue_Func;
-        SaveLayerElement_Func = saveLayerElement_Func;
+        Storage = storage;
     }
 
     #region Version
