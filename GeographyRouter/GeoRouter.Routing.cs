@@ -51,9 +51,26 @@ namespace GeographyRouter
             routings.Add(routing);
             try
             {
-                CreateNode(this, ref routing, null, source);
+                var node = new Node(routing, null, source);
+                routing.Add(node, 0);
+                this.Add(source, node);
+
+
+                var HitTestResult = this.HitTest(node.Coordinate, false);
+                FillNodeItems(this, HitTestResult.Where(x => x.GeographyTypeIsPoint), node, source);
+
+                foreach (var item in HitTestResult.Where(x => x.GeographyTypeIsLine))
+                {
+                    if (item.Routed) continue;
+                    if (node.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
+                    CreateRoute(this, ref routing, null, node, item);
+                }
             }
-            catch (Exception ex) { }
+            catch (Exception ex)
+            {
+                Log($"Create routing has error {source.Code} {ex}");
+            }
+
             foreach (var routingitem in routing.Items)
             {
                 routing.ItemsByPrecedence.Add(routingitem.Precedence, routingitem);
@@ -88,42 +105,25 @@ namespace GeographyRouter
             var result = new List<ILayerElement>();
             Repo.RoutingHitTest(coordinate.Latitude, coordinate.Longitude, ref result, justNotRoute);
             return result;
-        }
+        }      
 
-        private static Node CreateNode(GeoRouter assistant, ref Routing routing, Route preroute, ILayerElement element)
+        private static void FillNodeItems(GeoRouter assistant, IEnumerable<ILayerElement> HitTestResultNodes, Node node, ILayerElement element)
         {
-            var node = new Node(routing, preroute, element);
-            if(preroute == null) routing.Add(node, 0);
-            else routing.Add(node, preroute.Precedence);
-            assistant.Add(element, node);
-
-            var HitTestResult = assistant.HitTest(node.Coordinate, false);
-            foreach (var item in HitTestResult.Where(x => x.GeographyTypeIsPoint))
+            foreach (var item in HitTestResultNodes)
             {
                 if (item == element) continue;
                 if (item.Routed)
                     throw new ApplicationException($"Node already analyzed! ({node.Coordinate}, {item.Code})");
                 if (item.Connected == false)
                 {
-                    //continue;
-                    return node;
+                    return;
                 }
                 assistant.Add(item, node);
 
                 node.Add(item);
             }
-
-            foreach (var item in HitTestResult.Where(x => x.GeographyTypeIsLine))
-            {
-                if (item.Routed) continue;
-                if (node.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
-                CreateRoute(assistant, ref routing, null, node, item);
-            }
-
-
-            return node;
         }
-
+      
         private static void CreateRoute(GeoRouter assistant, ref Routing routing, Branch branch, Node node, ILayerElement element)
         {
             var route = default(Route);
@@ -140,7 +140,6 @@ namespace GeographyRouter
                 routing.Add(route, branch.Precedence);
             }
             assistant.Add(element, route);
-
 
             while (true)
             {
@@ -192,6 +191,26 @@ namespace GeographyRouter
                     route.Add(newline);
                 }
             }
+        }
+
+        private static Node CreateNode(GeoRouter assistant, ref Routing routing, Route preroute, ILayerElement element)
+        {
+            var node = new Node(routing, preroute, element);
+            if (preroute == null) routing.Add(node, 0);
+            else routing.Add(node, preroute.Precedence);
+            assistant.Add(element, node);
+
+            var HitTestResult = assistant.HitTest(node.Coordinate, false);
+            FillNodeItems(assistant, HitTestResult.Where(x => x.GeographyTypeIsPoint), node, element);
+
+            foreach (var item in HitTestResult.Where(x => x.GeographyTypeIsLine))
+            {
+                if (item.Routed) continue;
+                if (node.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
+                CreateRoute(assistant, ref routing, null, node, item);
+            }
+
+            return node;
         }
 
         private static Branch CreateBranch(GeoRouter assistant, ref Routing routing, Route preroute, CoordinateRef coordinate, List<ILayerElement> HitTestResult)
