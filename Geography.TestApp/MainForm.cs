@@ -107,36 +107,42 @@ namespace Geography.TestApp
                     var reportDirectory = $"{RepositoryDirectory}RoutingReports({DateTime.Now:yyyy-MM-dd-HH-mm-ss})";
                     Directory.CreateDirectory(reportDirectory);
 
-                    var report = new StringBuilder();
-                    foreach (var routing in Routings.Routings)
+                    var routings = Routings.Routings.ToList();
+                    foreach (var routing in routings)
                     {
-                        Log($"Save Route {routing.Source.Code}");
-                        var source = routing.Items.FirstOrDefault();
-                        var precedences = new List<uint>();
-                        source.FillDowngoing(ref precedences);
+                        Log($"Save Route {routing.Source.Code} [{routings.IndexOf(routing) + 1} of {routings.Count}]");
 
-                        foreach (var precedence in precedences.OrderBy(x => x))
+                        var reportFilename = Path.Combine(reportDirectory, $"{routing.Source.Code}-Routing.log");
+                        using (var reportFile = new StreamWriter(reportFilename))
                         {
-                            var item = routing.ItemsByPrecedence[precedence];
+                            reportFile.WriteLine($"{routing.Source.Code}-Routing");
 
-                            var precedenceText = $"{precedence} (pre:{item.PrePrecedence}, next: {string.Join(",", item.NextPrecedences)}";
-                            if (item is GeographyRouter.Route route)
+                            var source = routing.Items.FirstOrDefault();
+                            var precedences = source.FillDowngoing();
+
+                            foreach (var precedence in precedences.OrderBy(x => x))
                             {
-                                report.AppendLine($"<Route {precedenceText}> {string.Join(", ", route.Elements.Select(x => x.Code))}");
+                                var item = routing.ItemsByPrecedence[precedence];
+
+                                var precedenceText = $"{precedence} (pre:{item.PrePrecedence}, next: {string.Join(",", item.NextPrecedences)}";
+                                if (item is GeographyRouter.Route route)
+                                {
+                                    reportFile.WriteLine($"<Route {precedenceText}> {string.Join(", ", route.Elements.Select(x => x.Code))}");
+                                }
+                                else if (item is GeographyRouter.Node node)
+                                {
+                                    reportFile.WriteLine($"<Node {precedenceText}> {string.Join(", ", node.Elements.Select(x => x.Code))}");
+                                }
+                                else if (item is GeographyRouter.Branch branch)
+                                {
+                                    reportFile.WriteLine($"<Branch {precedenceText}>");
+                                }
                             }
-                            else if (item is GeographyRouter.Node node)
-                            {
-                                report.AppendLine($"<Node {precedenceText}> {string.Join(", ", node.Elements.Select(x => x.Code))}");
-                            }
-                            else if (item is GeographyRouter.Branch branch)
-                            {
-                                report.AppendLine($"<Branch {precedenceText}>");
-                            }
+
+                            reportFile.Flush();
                         }
-
-                        var reportfilename = Path.Combine(reportDirectory, $"{routing.Source.Code}-Routing.log");
-                        File.WriteAllText(reportfilename, report.ToString());
                     }
+
                 }
                 ResetTitle("Ready");
 

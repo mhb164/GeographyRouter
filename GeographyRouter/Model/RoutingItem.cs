@@ -22,15 +22,49 @@ namespace GeographyRouter
             return upcomming;
         }
 
-        public void FillDowngoing(ref List<uint> precedences)
+        //public void FillDowngoing(ref List<uint> precedences)
+        //{
+        //    if (precedences.Contains(Precedence) == false) precedences.Add(Precedence);
+        //    foreach (var nextPrecedence in NextPrecedences) Owner.ItemsByPrecedence[nextPrecedence].FillDowngoing(ref precedences);
+        //}
+        public List<uint> FillDowngoing() => FillDowngoing(this);
+        public static List<uint> FillDowngoing(RoutingItem root)
         {
-            if (precedences.Contains(Precedence) == false) precedences.Add(Precedence);
-            foreach (var nextPrecedence in NextPrecedences) Owner.ItemsByPrecedence[nextPrecedence].FillDowngoing(ref precedences);
+            HashSet<uint> precedences = new HashSet<uint>();
+            Queue<RoutingItem> queue = new Queue<RoutingItem>();
+            queue.Enqueue(root);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                //if (precedences.Contains(current.Precedence) == false) 
+                    precedences.Add(current.Precedence);
+
+                foreach (var nextPrecedence in current.NextPrecedences)
+                    queue.Enqueue(current.Owner.ItemsByPrecedence[nextPrecedence]);
+            }
+
+            return new List<uint>(precedences);
         }
-        public void FillUpcomming(ref List<uint> precedences)
+
+        public List<uint> FillUpcomming() => FillUpcomming(this);
+        public static List<uint> FillUpcomming(RoutingItem root)
         {
-            if (precedences.Contains(Precedence) == false) precedences.Add(Precedence);
-            if (Owner.ItemsByPrecedence.ContainsKey(PrePrecedence)) Owner.ItemsByPrecedence[PrePrecedence].FillUpcomming(ref precedences);
+            HashSet<uint> precedences = new HashSet<uint>();
+            Queue<RoutingItem> queue = new Queue<RoutingItem>();
+            queue.Enqueue(root);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                //if (precedences.Contains(current.Precedence) == false) 
+                    precedences.Add(current.Precedence);
+
+                if (current.Owner.ItemsByPrecedence.ContainsKey(current.PrePrecedence))
+                    queue.Enqueue(current.Owner.ItemsByPrecedence[current.PrePrecedence]);
+            }
+
+            return new List<uint>(precedences);
         }
 
         //private void FillUpcomming(List<RoutingItem> upcomming)

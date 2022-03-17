@@ -144,11 +144,12 @@ public partial class GeographyRepository
             logAction?.Invoke($"Initial Repository> domains file not found");
         }
 
-        foreach (var layerfilename in Directory.GetFiles(root, "Layer_*.json"))
+        var layerfilenames = Directory.GetFiles(root, "Layer_*.json").ToList();
+        foreach (var layerfilename in layerfilenames)
         {
             var layerCode = Path.GetFileNameWithoutExtension(layerfilename).Replace("Layer_", "");
             layerCode = layerCode.Substring(0, layerCode.LastIndexOf('_'));
-            logAction?.Invoke($"Load elements ({Path.GetFileNameWithoutExtension(layerfilename)})");
+            logAction?.Invoke($"Load elements {layerfilenames.IndexOf(layerfilename) +1} of {layerfilenames.Count} ({Path.GetFileNameWithoutExtension(layerfilename)})");
             var layerElements = serializer.Deserialize<List<LayerElement>>(File.ReadAllText(layerfilename));
             logAction?.Invoke($"Initial Repository> elements of {layerCode}");
             repository.Initial(layerCode, layerElements);

@@ -48,6 +48,7 @@ namespace Geography.TestApp
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -63,7 +64,7 @@ namespace Geography.TestApp
             this.splitContainer1.Panel2.Controls.Add(this.LogBox);
             this.splitContainer1.Panel2.Controls.Add(this.LogsController);
             this.splitContainer1.Size = new System.Drawing.Size(800, 450);
-            this.splitContainer1.SplitterDistance = 191;
+            this.splitContainer1.SplitterDistance = 53;
             this.splitContainer1.TabIndex = 0;
             // 
             // ExtractRoutesButton
@@ -99,7 +100,7 @@ namespace Geography.TestApp
             this.LogBox.Name = "LogBox";
             this.LogBox.ReadOnly = true;
             this.LogBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.LogBox.Size = new System.Drawing.Size(800, 227);
+            this.LogBox.Size = new System.Drawing.Size(800, 365);
             this.LogBox.TabIndex = 22;
             this.LogBox.WordWrap = false;
             // 
@@ -109,7 +110,7 @@ namespace Geography.TestApp
             this.LogsController.Controls.Add(this.SaveLogsAsTextButon);
             this.LogsController.Controls.Add(this.ClearLogsButton);
             this.LogsController.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.LogsController.Location = new System.Drawing.Point(0, 227);
+            this.LogsController.Location = new System.Drawing.Point(0, 365);
             this.LogsController.Name = "LogsController";
             this.LogsController.Size = new System.Drawing.Size(800, 28);
             this.LogsController.TabIndex = 23;

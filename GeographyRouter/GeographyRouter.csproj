@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GeoRouter.RoutingHelper.cs" />
     <Compile Include="Model\Branch.cs" />
     <Compile Include="GeoRouter.cs" />
     <Compile Include="Model\Routing.cs" />
