@@ -9,9 +9,82 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
-public partial class GeographyRepository : GeographyRouter.IGeoRepository
+public partial class GeographyRepository
 {
-    public void Save(string root, Action<string> logAction) => Save(this, root, logAction);
+    public void Save(string root, bool lite, Action<string> logAction)
+    {
+        if (lite) SaveLite(this, root, logAction);
+        else Save(this, root, logAction);
+    }
+
+    private static void SaveLite(GeographyRepository repository, string root, Action<string> logAction)
+    {
+        if (Directory.Exists(root)) Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
+        var layersFilename = Path.Combine(root, "Layers.json");
+        var liteLayers = new List<Layer>();
+        foreach (var layer in repository.layers.Values)
+        {
+            var liteLayer = new Layer()
+            {
+                Id = layer.Id,
+                Code = layer.Code,
+                Displayname = layer.Displayname,
+                GeographyType = layer.GeographyType,
+                Fields = new List<LayerField>(),
+                ElementDisplaynameFormat = "{LAYERNAME} ({CODE})",
+                IsRoutingSource = layer.IsRoutingSource,
+                IsElectrical = layer.IsElectrical,
+                IsDisconnector = layer.IsDisconnector,
+                OperationStatusFieldCode = "",
+                OperationStatusOpenValue = "",
+            };
+
+            if (layer.OperationStatusField != null)
+            {
+                liteLayer.Fields.Add(layer.OperationStatusField);
+                liteLayer.OperationStatusFieldCode = layer.OperationStatusFieldCode;
+                liteLayer.OperationStatusOpenValue = layer.OperationStatusOpenValue;
+            }
+            liteLayers.Add(liteLayer);
+        }
+        File.WriteAllText(layersFilename, serializer.Serialize(liteLayers));
+
+        foreach (var layer in repository.layers.Values)
+        {
+            if (!repository.elementsByLayerId.ContainsKey(layer.Id)) continue;
+            var counter = 0;
+            foreach (var splited in SplitList(repository.elementsByLayerId[layer.Id]))
+            {
+                counter++;
+                var layerElementsFilename = Path.Combine(root, $"Layer_{layer.Code}_{counter}.json");
+
+                var liteLayerElements = new List<LayerElement>();
+                foreach (var item in splited)
+                {
+                    var liteLayerElement = new LayerElement()
+                    {
+                        Id = item.Id,
+                        Activation = item.Activation,
+                        Code = item.Code,
+                        Version = item.Version,
+                        Points = item.Points,
+                        FieldValuesText = ""
+                    };
+
+                    if (layer.OperationStatusField != null)
+                    {
+                        liteLayerElement.FieldValuesText = layer.OperationStatusField.GetValue(item.FieldValues);
+                    }
+                    liteLayerElements.Add(liteLayerElement);
+                }
+                File.WriteAllText(layerElementsFilename, serializer.Serialize(liteLayerElements));
+            }
+        }
+    }
+
     public static void Save(GeographyRepository repository, string root, Action<string> logAction)
     {
         if (Directory.Exists(root)) Directory.Delete(root, true);
@@ -49,32 +122,40 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         var repository = (GeographyRepository)instance;
         var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
 
-        logAction?.Invoke("Initial Repository start");
+        logAction?.Invoke($"Initial Repository start");
         repository.BeginInitial();
 
-        logAction?.Invoke("Load layers & fields");
+        logAction?.Invoke($"Load layers & fields");
         var layersFilename = Path.Combine(root, "Layers.json");
         var layers = serializer.Deserialize<List<Layer>>(File.ReadAllText(layersFilename));
-        logAction?.Invoke("Initial Repository> layers & fields");
+        logAction?.Invoke($"Initial Repository> layers & fields");
         repository.Initial(layers);
 
-        logAction?.Invoke("Load domains");
+        logAction?.Invoke($"Load domains");
         var domainsFilename = Path.Combine(root, "Domains.json");
-        var domainValues = serializer.Deserialize<List<DomainValue>>(File.ReadAllText(domainsFilename));
-        logAction?.Invoke("Initial Repository> domains");
-        repository.Initial(domainValues);
+        if (File.Exists(domainsFilename))
+        {
+            var domainValues = serializer.Deserialize<List<DomainValue>>(File.ReadAllText(domainsFilename));
+            logAction?.Invoke($"Initial Repository> domains {domainValues.Count}");
+            repository.Initial(domainValues);
+        }
+        else
+        {
+            logAction?.Invoke($"Initial Repository> domains file not found");
+        }
 
-        foreach (var layerfilename in Directory.GetFiles(root, "Layer_*.json"))
+        var layerfilenames = Directory.GetFiles(root, "Layer_*.json").ToList();
+        foreach (var layerfilename in layerfilenames)
         {
             var layerCode = Path.GetFileNameWithoutExtension(layerfilename).Replace("Layer_", "");
             layerCode = layerCode.Substring(0, layerCode.LastIndexOf('_'));
-            logAction?.Invoke($"Load elements ({Path.GetFileNameWithoutExtension(layerfilename)})");
+            logAction?.Invoke($"Load elements {layerfilenames.IndexOf(layerfilename) +1} of {layerfilenames.Count} ({Path.GetFileNameWithoutExtension(layerfilename)})");
             var layerElements = serializer.Deserialize<List<LayerElement>>(File.ReadAllText(layerfilename));
             logAction?.Invoke($"Initial Repository> elements of {layerCode}");
             repository.Initial(layerCode, layerElements);
 
         }
-        repository.EndInitial(null, null, null, null, null);
+        repository.EndInitial(null);
 
         return instance;
     }

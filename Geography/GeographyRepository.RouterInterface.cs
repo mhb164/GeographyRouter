@@ -12,10 +12,14 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 {
     public void ResetRouting() => WriteByLock(() =>
     {
-        foreach (var element in elements.Values)
+        Parallel.ForEach(elements.Values, element =>
         {
             element.ResetRouting();
-        }
+        });
+        //foreach (var element in elements.Values)
+        //{
+        //    element.ResetRouting();
+        //}
     });
 
     public List<GeographyRouter.ILayerElement> GetRoutingSources() => ReadByLock(() =>

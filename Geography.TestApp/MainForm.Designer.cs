@@ -1,5 +1,5 @@
 ﻿
-namespace System.Windows.Forms
+namespace Geography.TestApp
 {
     partial class MainForm
     {
@@ -30,13 +30,14 @@ namespace System.Windows.Forms
         private void InitializeComponent()
         {
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.ExtractRoutesButton = new System.Windows.Forms.Button();
+            this.LoadButton = new System.Windows.Forms.Button();
             this.LogBox = new System.Windows.Forms.TextBox();
             this.LogsController = new System.Windows.Forms.Panel();
             this.CopyLogsToClipboardButon = new System.Windows.Forms.Button();
             this.SaveLogsAsTextButon = new System.Windows.Forms.Button();
             this.ClearLogsButton = new System.Windows.Forms.Button();
-            this.LoadButton = new System.Windows.Forms.Button();
-            this.ExtractRoutesButton = new System.Windows.Forms.Button();
+            this.SaveRoutingSelector = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -47,12 +48,14 @@ namespace System.Windows.Forms
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.SaveRoutingSelector);
             this.splitContainer1.Panel1.Controls.Add(this.ExtractRoutesButton);
             this.splitContainer1.Panel1.Controls.Add(this.LoadButton);
             // 
@@ -61,8 +64,30 @@ namespace System.Windows.Forms
             this.splitContainer1.Panel2.Controls.Add(this.LogBox);
             this.splitContainer1.Panel2.Controls.Add(this.LogsController);
             this.splitContainer1.Size = new System.Drawing.Size(800, 450);
-            this.splitContainer1.SplitterDistance = 191;
+            this.splitContainer1.SplitterDistance = 53;
             this.splitContainer1.TabIndex = 0;
+            // 
+            // ExtractRoutesButton
+            // 
+            this.ExtractRoutesButton.AutoSize = true;
+            this.ExtractRoutesButton.Location = new System.Drawing.Point(87, 12);
+            this.ExtractRoutesButton.Name = "ExtractRoutesButton";
+            this.ExtractRoutesButton.Size = new System.Drawing.Size(115, 25);
+            this.ExtractRoutesButton.TabIndex = 0;
+            this.ExtractRoutesButton.Text = "Extract Routes";
+            this.ExtractRoutesButton.UseVisualStyleBackColor = true;
+            this.ExtractRoutesButton.Click += new System.EventHandler(this.ExtractRoutesButton_Click);
+            // 
+            // LoadButton
+            // 
+            this.LoadButton.AutoSize = true;
+            this.LoadButton.Location = new System.Drawing.Point(12, 12);
+            this.LoadButton.Name = "LoadButton";
+            this.LoadButton.Size = new System.Drawing.Size(69, 25);
+            this.LoadButton.TabIndex = 0;
+            this.LoadButton.Text = "Load";
+            this.LoadButton.UseVisualStyleBackColor = true;
+            this.LoadButton.Click += new System.EventHandler(this.LoadButton_Click);
             // 
             // LogBox
             // 
@@ -75,7 +100,7 @@ namespace System.Windows.Forms
             this.LogBox.Name = "LogBox";
             this.LogBox.ReadOnly = true;
             this.LogBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.LogBox.Size = new System.Drawing.Size(800, 227);
+            this.LogBox.Size = new System.Drawing.Size(800, 365);
             this.LogBox.TabIndex = 22;
             this.LogBox.WordWrap = false;
             // 
@@ -85,7 +110,7 @@ namespace System.Windows.Forms
             this.LogsController.Controls.Add(this.SaveLogsAsTextButon);
             this.LogsController.Controls.Add(this.ClearLogsButton);
             this.LogsController.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.LogsController.Location = new System.Drawing.Point(0, 227);
+            this.LogsController.Location = new System.Drawing.Point(0, 365);
             this.LogsController.Name = "LogsController";
             this.LogsController.Size = new System.Drawing.Size(800, 28);
             this.LogsController.TabIndex = 23;
@@ -135,27 +160,17 @@ namespace System.Windows.Forms
             this.ClearLogsButton.UseVisualStyleBackColor = true;
             this.ClearLogsButton.Click += new System.EventHandler(this.ClearLogsButton_Click);
             // 
-            // LoadButton
+            // SaveRoutingSelector
             // 
-            this.LoadButton.AutoSize = true;
-            this.LoadButton.Location = new System.Drawing.Point(12, 12);
-            this.LoadButton.Name = "LoadButton";
-            this.LoadButton.Size = new System.Drawing.Size(69, 25);
-            this.LoadButton.TabIndex = 0;
-            this.LoadButton.Text = "Load";
-            this.LoadButton.UseVisualStyleBackColor = true;
-            this.LoadButton.Click += new System.EventHandler(this.LoadButton_Click);
-            // 
-            // ExtractRoutesButton
-            // 
-            this.ExtractRoutesButton.AutoSize = true;
-            this.ExtractRoutesButton.Location = new System.Drawing.Point(87, 12);
-            this.ExtractRoutesButton.Name = "ExtractRoutesButton";
-            this.ExtractRoutesButton.Size = new System.Drawing.Size(115, 25);
-            this.ExtractRoutesButton.TabIndex = 0;
-            this.ExtractRoutesButton.Text = "Extract Routes";
-            this.ExtractRoutesButton.UseVisualStyleBackColor = true;
-            this.ExtractRoutesButton.Click += new System.EventHandler(this.ExtractRoutesButton_Click);
+            this.SaveRoutingSelector.AutoSize = true;
+            this.SaveRoutingSelector.Checked = true;
+            this.SaveRoutingSelector.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.SaveRoutingSelector.Location = new System.Drawing.Point(208, 16);
+            this.SaveRoutingSelector.Name = "SaveRoutingSelector";
+            this.SaveRoutingSelector.Size = new System.Drawing.Size(117, 19);
+            this.SaveRoutingSelector.TabIndex = 1;
+            this.SaveRoutingSelector.Text = "Save Routings";
+            this.SaveRoutingSelector.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -187,6 +202,7 @@ namespace System.Windows.Forms
         private System.Windows.Forms.Button ClearLogsButton;
         private System.Windows.Forms.Button LoadButton;
         private System.Windows.Forms.Button ExtractRoutesButton;
+        private System.Windows.Forms.CheckBox SaveRoutingSelector;
     }
 }
 
