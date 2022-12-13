@@ -31,7 +31,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     #region Lock
     ReaderWriterLockSlim Lock = new ReaderWriterLockSlim();
-    private void WriteByLock(Action action)
+    protected void WriteByLock(Action action)
     {
         Lock.EnterWriteLock();
         try
@@ -40,7 +40,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
         finally { Lock.ExitWriteLock(); }
     }
-    private T WriteByLock<T>(Func<T> func)
+    protected T WriteByLock<T>(Func<T> func)
     {
         Lock.EnterWriteLock();
         try
@@ -49,7 +49,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
         finally { Lock.ExitWriteLock(); }
     }
-    private void ReadByLock(Action action)
+    protected void ReadByLock(Action action)
     {
         Lock.EnterReadLock();
         try
@@ -58,7 +58,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
         finally { Lock.ExitReadLock(); }
     }
-    private T ReadByLock<T>(Func<T> func)
+    protected T ReadByLock<T>(Func<T> func)
     {
         Lock.EnterReadLock();
         try
@@ -97,7 +97,10 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     public void EndInitial(IGeographyRepositoryStorage storage)
     {
         Storage = storage;
+        AfterInitialFinished();
     }
+
+    protected virtual void AfterInitialFinished() { }
 
     #region Version
     long version = 0;
@@ -136,6 +139,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public bool StructureLocked => ReadByLock(() => isStructureLocked);
     private bool isStructureLocked => elements.Count > 0;
+
     #region Layers
     Dictionary<string, Layer> layers = new Dictionary<string, Layer>();
     //Dictionary<Guid, LayerElementsMatrix> layersMatrix = new Dictionary<Guid, LayerElementsMatrix>();
@@ -275,8 +279,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             else return 0;
         }
     });
-
-
     #endregion Layers
 
     #region Domains
@@ -439,6 +441,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public LayerElement GetElement(string code)
     {
+        
         if (elements.ContainsKey(code)) return elements[code];
         else return null;
     }
@@ -483,6 +486,11 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         return elementsByLayerId[owner.Id];
     }
 
+    public int GetElementsCount(Layer owner)
+    {
+        if (elementsByLayerId.ContainsKey(owner.Id) == false) return 0;
+        return elementsByLayerId[owner.Id].Count;
+    }
     //internal IEnumerable<LayerElement> HitTest(IEnumerable<Guid> LayerIds, double Latitude, double Longitude)
     //{
     //    var result = new List<LayerElement>();

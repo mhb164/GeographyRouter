@@ -19,6 +19,7 @@ namespace GeographyRouter
             ItemsByPrecedence = new Dictionary<uint, RoutingItem>();
         }
         public ILayerElement Source { get; private set; }
+        public Node SourceNode { get; private set; }
         public List<RoutingItem> Items { get; private set; }
         public List<Route> Routes { get; private set; }
         public List<Node> Nodes { get; private set; }
@@ -41,6 +42,10 @@ namespace GeographyRouter
         }
         internal void Add(Node item, uint prePrecedence)
         {
+            if(prePrecedence == 0)
+            {
+                SourceNode = item;
+            }
             item.PrePrecedence = prePrecedence;
             item.Precedence = ++MaxPrecedence;
             Items.Add(item);

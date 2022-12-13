@@ -27,6 +27,7 @@ public partial class GeographyRepository
         var liteLayers = new List<Layer>();
         foreach (var layer in repository.layers.Values)
         {
+            if (layer.IsElectrical== false) continue;
             var liteLayer = new Layer()
             {
                 Id = layer.Id,
@@ -54,6 +55,8 @@ public partial class GeographyRepository
 
         foreach (var layer in repository.layers.Values)
         {
+            if (layer.IsElectrical == false) continue;
+
             if (!repository.elementsByLayerId.ContainsKey(layer.Id)) continue;
             var counter = 0;
             foreach (var splited in SplitList(repository.elementsByLayerId[layer.Id]))

@@ -99,7 +99,9 @@ namespace Geography.TestApp
             new Thread(() =>
             {
                 ResetTitle("Extracting Routes...");
-                Routings = new GeographyRouter.GeoRouter(Repository, Log);
+                var config = new GeographyRouter.Config(true);
+
+                Routings = new GeographyRouter.GeoRouter(config, Repository, Log);
 
                 if (saveRoutings)
                 {
