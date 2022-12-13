@@ -27,7 +27,7 @@ public partial class GeographyRepository
         var liteLayers = new List<Layer>();
         foreach (var layer in repository.layers.Values)
         {
-            if (layer.IsElectrical== false) continue;
+            if (layer.IsElectrical == false) continue;
             var liteLayer = new Layer()
             {
                 Id = layer.Id,
@@ -40,14 +40,15 @@ public partial class GeographyRepository
                 IsElectrical = layer.IsElectrical,
                 IsDisconnector = layer.IsDisconnector,
                 OperationStatusFieldCode = "",
-                OperationStatusOpenValue = "",
+                OperationStatusAbnormalValues = new List<string>(),
+                IsNormalOpen = layer.IsNormalOpen
             };
 
             if (layer.OperationStatusField != null)
             {
                 liteLayer.Fields.Add(layer.OperationStatusField);
                 liteLayer.OperationStatusFieldCode = layer.OperationStatusFieldCode;
-                liteLayer.OperationStatusOpenValue = layer.OperationStatusOpenValue;
+                liteLayer.OperationStatusAbnormalValues = layer.OperationStatusAbnormalValues;
             }
             liteLayers.Add(liteLayer);
         }
@@ -152,7 +153,7 @@ public partial class GeographyRepository
         {
             var layerCode = Path.GetFileNameWithoutExtension(layerfilename).Replace("Layer_", "");
             layerCode = layerCode.Substring(0, layerCode.LastIndexOf('_'));
-            logAction?.Invoke($"Load elements {layerfilenames.IndexOf(layerfilename) +1} of {layerfilenames.Count} ({Path.GetFileNameWithoutExtension(layerfilename)})");
+            logAction?.Invoke($"Load elements {layerfilenames.IndexOf(layerfilename) + 1} of {layerfilenames.Count} ({Path.GetFileNameWithoutExtension(layerfilename)})");
             var layerElements = serializer.Deserialize<List<LayerElement>>(File.ReadAllText(layerfilename));
             logAction?.Invoke($"Initial Repository> elements of {layerCode}");
             repository.Initial(layerCode, layerElements);

@@ -19,11 +19,17 @@ namespace GeographyModel
                 if (Layer == null) return false;
                 if (Layer.IsElectrical == false) return false;
                 //-------------
-                if (Layer.OperationStatusField == null) return true;
-                if (string.IsNullOrWhiteSpace(Layer.OperationStatusOpenValue)) return true;
+                var normalValue = !Layer.IsNormalOpen;// Close: connected, Open: disconnectd
+                if (Layer.OperationStatusField == null) return normalValue;
+                if (Layer.OperationStatusAbnormalValues.Count == 0) return normalValue;
                 //-------------
-                if (Layer.OperationStatusField.GetValue(FieldValues).Trim() == Layer.OperationStatusOpenValue.Trim()) return false;
-                else return true;
+                var fieldValue = Layer.OperationStatusField.GetValue(FieldValues).Trim();
+                foreach (var item in Layer.OperationStatusAbnormalValues)
+                {
+                    if (fieldValue == item)
+                        return !normalValue;
+                }
+                return normalValue;
             }
         }
 
@@ -47,7 +53,7 @@ namespace GeographyModel
 
         [IgnoreDataMember, ScriptIgnore]
         public bool Routed { get; set; }
-        
+
         public void ResetRouting()
         {
             Routed = false;

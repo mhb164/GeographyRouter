@@ -118,8 +118,9 @@ public partial class GeographyRepository
         var changed = false;
         changed |= command.UseInRouting != layer.IsElectrical;
         changed |= command.ConnectivityStateFieldCode != layer.OperationStatusFieldCode;
-        changed |= command.ConnectivityStateOpenValue != layer.OperationStatusOpenValue;
         changed |= command.Disconnectable != layer.IsDisconnector;
+        changed |= !Equals(command.ConnectivityStateAbnormalValues, layer.OperationStatusAbnormalValues);        
+        changed |= command.NormalOpen != layer.IsNormalOpen;
 
         if (changed == false)
             return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
@@ -140,13 +141,36 @@ public partial class GeographyRepository
         //------------------------
         layer.IsElectrical = command.UseInRouting;
         layer.OperationStatusFieldCode = command.ConnectivityStateFieldCode;
-        layer.OperationStatusOpenValue = command.ConnectivityStateOpenValue;
         layer.IsDisconnector = command.Disconnectable;
+        layer.OperationStatusAbnormalValues = command.ConnectivityStateAbnormalValues;
+        layer.IsNormalOpen = command.NormalOpen;
 
         Save(layer);
 
         return UpdateResult.Success();
     });
+
+    private bool Equals(List<string> a, List<string> b)
+    {
+        if (a is null && b is null) 
+            return true;
+
+        if (a is null) 
+            return false;
+
+        if (b is null) 
+            return false;
+
+        if (a.Count != b.Count) 
+            return false;
+
+        foreach (var item in a)
+        {
+            if (!b.Contains(item))
+                return false;
+        }
+        return true;
+    }
 
     public UpdateResult Excecute(CreateLayerFieldCommand command) => WriteByLock(() =>
     {

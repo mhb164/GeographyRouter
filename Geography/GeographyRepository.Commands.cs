@@ -43,7 +43,8 @@ public partial class GeographyRepository
                 IsElectrical = false,
                 IsDisconnector = false,
                 OperationStatusFieldCode = "",
-                OperationStatusOpenValue = "",
+                OperationStatusAbnormalValues = new List<string>(),
+                IsNormalOpen = false, 
                 ElementDisplaynameFormat = "{LAYERNAME} ({CODE})",
                 Fields = new List<LayerField>(),
             };
@@ -112,18 +113,25 @@ public partial class GeographyRepository
         public readonly Guid LayerId;
         public readonly bool UseInRouting;//IsElectrical
         public readonly string ConnectivityStateFieldCode;//OperationStatusFieldCode
-        public readonly string ConnectivityStateOpenValue;//OperationStatusOpenValue
+        public readonly List<string> ConnectivityStateAbnormalValues;//OperationStatusAbnormalValues
         public readonly bool Disconnectable;//IsDisconnector
+        public readonly bool NormalOpen;//IsNormalOpen
 
-        public UpdateLayerRoutingCommand(Guid layerId, bool useInRouting, string connectivityStateFieldCode, string connectivityStateOpenValue, bool disconnectable)
+        public UpdateLayerRoutingCommand(Guid layerId,
+                                         bool useInRouting,
+                                         string connectivityStateFieldCode,
+                                         List<string> connectivityStateAbnormalValues,
+                                         bool disconnectable,
+                                         bool normalOpen)
         {
             if (layerId == Guid.Empty) throw new ArgumentException("شناسه لایه خالی وارد شده است!");
 
             LayerId = layerId;
             UseInRouting = useInRouting;
             ConnectivityStateFieldCode = connectivityStateFieldCode.ToUpperInvariant().Trim();
-            ConnectivityStateOpenValue = connectivityStateOpenValue.Trim();
+            ConnectivityStateAbnormalValues = connectivityStateAbnormalValues.Select(x=>x.Trim()).ToList();
             Disconnectable = disconnectable;
+            NormalOpen = normalOpen;
         }
     }
 

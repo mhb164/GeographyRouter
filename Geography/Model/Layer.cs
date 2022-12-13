@@ -39,7 +39,9 @@ namespace GeographyModel
         public string OperationStatusFieldCode { get; set; }
 
         [DataMember(Order = 08)]
-        public string OperationStatusOpenValue { get; set; }
+        public List<string> OperationStatusAbnormalValues { get; set; }
 
+        [DataMember(Order = 09)]
+        public bool IsNormalOpen { get; set; }
     }
 }

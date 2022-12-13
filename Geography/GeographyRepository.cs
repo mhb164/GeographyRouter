@@ -214,7 +214,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         layer.IsElectrical = input.IsElectrical;
         layer.IsDisconnector = input.IsDisconnector;
         layer.OperationStatusFieldCode = input.OperationStatusFieldCode;
-        layer.OperationStatusOpenValue = input.OperationStatusOpenValue;
+        layer.OperationStatusAbnormalValues = input.OperationStatusAbnormalValues;
+        layer.IsNormalOpen = input.IsNormalOpen;
         layer.ElementDisplaynameFormat = input.ElementDisplaynameFormat;
         if (input.Fields != null)
         {
@@ -441,7 +442,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public LayerElement GetElement(string code)
     {
-        
+
         if (elements.ContainsKey(code)) return elements[code];
         else return null;
     }
