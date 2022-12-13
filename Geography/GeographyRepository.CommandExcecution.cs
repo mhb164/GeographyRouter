@@ -78,6 +78,7 @@ public partial class GeographyRepository
 
             item.IsRoutingSource = isRoutingSource;
             Save(item);
+            update(item);
         }
 
         return UpdateResult.Success();
@@ -105,7 +106,7 @@ public partial class GeographyRepository
 
         Save(layer);
 
-        return UpdateResult.Success();
+        return update(layer);
     });
 
     public UpdateResult Excecute(UpdateLayerRoutingCommand command) => WriteByLock(() =>
@@ -147,7 +148,7 @@ public partial class GeographyRepository
 
         Save(layer);
 
-        return UpdateResult.Success();
+        return update(layer);
     });
 
     private bool Equals(List<string> a, List<string> b)
@@ -193,7 +194,7 @@ public partial class GeographyRepository
         });
 
         Save(layer);
-        return UpdateResult.Success();
+        return update(layer);
     });
 
     public UpdateResult Excecute(UpdateLayerFieldCommand command) => WriteByLock(() =>
@@ -217,7 +218,7 @@ public partial class GeographyRepository
         existingField.Displayname = command.Displayname;
 
         Save(layer);
-        return UpdateResult.Success();
+        return update(layer);
     });
 
     public UpdateResult Excecute(DeleteLayerFieldCommand command) => WriteByLock(() =>
@@ -240,7 +241,7 @@ public partial class GeographyRepository
         layer.ReIndexFields();
 
         Save(layer);
-        return UpdateResult.Success();
+        return update(layer);
     });
 
     public List<UpdateResult> Excecute(UpdateElementPackageCommand command)
