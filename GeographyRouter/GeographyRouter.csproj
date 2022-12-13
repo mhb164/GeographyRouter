@@ -44,6 +44,7 @@
     <Compile Include="GeoRouter.RoutingHelper.cs" />
     <Compile Include="Model\Branch.cs" />
     <Compile Include="GeoRouter.cs" />
+    <Compile Include="Model\Config.cs" />
     <Compile Include="Model\Routing.cs" />
     <Compile Include="GeoRouter.Routing.cs" />
     <Compile Include="Model.Dependency\CoordinateRef.cs" />

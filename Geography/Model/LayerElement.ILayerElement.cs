@@ -9,6 +9,8 @@ namespace GeographyModel
 {
     public partial class LayerElement : GeographyRouter.ILayerElement
     {
+        public override string ToString() => Displayname;
+
         [IgnoreDataMember, ScriptIgnore]
         public bool Connected
         {

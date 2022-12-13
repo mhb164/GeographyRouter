@@ -9,10 +9,12 @@ namespace GeographyRouter
 {
     public partial class GeoRouter
     {
+        readonly Config Config;
         readonly IGeoRepository Repo;
         readonly Action<string> LogAction;
-        public GeoRouter(IGeoRepository repo, Action<string> logAction)
+        public GeoRouter(Config config, IGeoRepository repo, Action<string> logAction)
         {
+            Config = config;
             Repo = repo;
             LogAction = logAction;
 

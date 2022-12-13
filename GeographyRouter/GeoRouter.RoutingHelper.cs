@@ -18,6 +18,11 @@ namespace GeographyRouter
                 Node = node;
                 OutputLines = outputLines;
             }
+            public CreateNodeResult(Node node)
+            {
+                Node = node;
+                OutputLines = new List<ILayerElement>();
+            }
 
             public IEnumerable<ILayerElement> GetMustRouteLines()
             {
