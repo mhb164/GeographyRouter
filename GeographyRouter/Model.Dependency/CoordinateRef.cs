@@ -16,7 +16,8 @@ namespace GeographyRouter
         public double Latitude => _getLatitudeAccessor.Invoke();
         public double Longitude => _getLongitudeAccessor.Invoke();
 
-        public override string ToString() { return $"({Latitude}, {Longitude})"; }
+        public string Text => $"{Latitude}, {Longitude}";
+        public override string ToString() => $"({Latitude}, {Longitude})";
         public override bool Equals(object obj)
         {
             // Check for null values and compare run-time types.
