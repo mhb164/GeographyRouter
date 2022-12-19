@@ -43,6 +43,8 @@ namespace GeographyModel
                         //------------------
                         if (Displayname.Contains("{LAYERNAME}")) Displayname = Displayname.Replace("{LAYERNAME}", Layer.Displayname);
                         if (Displayname.Contains("{CODE}")) Displayname = Displayname.Replace("{CODE}", Code);
+                        if (Displayname.Contains("{CONNECTED}")) Displayname = Displayname.Replace("{CONNECTED}", Connected ? "CLOSE" : "OPEN");
+                        if (Displayname.Contains("{CONNECTED-PERSIAN}")) Displayname = Displayname.Replace("{CONNECTED-PERSIAN}", Connected ? "وصل" : "قطع");
                         //------------------
                         var fieldValues = FieldValues;
                         foreach (var field in Layer.Fields)
