@@ -34,6 +34,8 @@ namespace GeographyModel
             {
                 if (fieldCode == "LAYERNAME") continue;
                 if (fieldCode == "CODE") continue;
+                if (fieldCode == "CONNECTED") continue;
+                if (fieldCode == "CONNECTED-PERSIAN") continue;
 
                 var field = Fields.FirstOrDefault(x => x.Code == fieldCode);
                 if (field == null)
