@@ -11,11 +11,17 @@ namespace GeographyModel
     {
         public override string ToString() => Displayname;
 
+        public static Func<string, bool?> GetConnectivityFunc;
+        static bool? GetConnectivity(string code) => GetConnectivityFunc?.Invoke(code);
+
         [IgnoreDataMember, ScriptIgnore]
         public bool Connected
         {
             get
             {
+                var connectivity = GetConnectivity(Code);
+                if (connectivity.HasValue) return connectivity.Value;
+                //-------------
                 if (Layer == null) return false;
                 if (Layer.IsElectrical == false) return false;
                 //-------------
