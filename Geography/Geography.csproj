@@ -116,6 +116,8 @@
     <Compile Include="Assistants\Map.Projections\IO\StreamTokenizer.cs" />
     <Compile Include="Assistants\Map.Projections\IO\TokenType.cs" />
     <Compile Include="Assistants\Map.Projections\IO\WKTStreamTokenizer.cs" />
+    <Compile Include="GeographyRepository.LayerElements.cs" />
+    <Compile Include="GeographyRepository.Layers.cs" />
     <Compile Include="GeographyRepository.Lock.cs" />
     <Compile Include="GeographyRepository.CommandExcecution.cs" />
     <Compile Include="GeographyRepository.RouterInterface.cs" />
