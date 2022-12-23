@@ -25,14 +25,5 @@ namespace GeographyModel
             if (result == null) result = "";
             return result;
         }
-
-        public string GetValueRaw(string[] elementFieldValues)
-        {
-            var result = string.Empty;
-            if (Index > elementFieldValues.Length) return result;
-            result = elementFieldValues[Index];
-            if (result == null) result = "";
-            return result;
-        }
     }
 }
