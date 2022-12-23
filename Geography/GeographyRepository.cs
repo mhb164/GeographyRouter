@@ -28,46 +28,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     }
     protected void Log(string message) => LogAction?.Invoke(message);
 
-    #region Lock
-    ReaderWriterLockSlim Lock = new ReaderWriterLockSlim();
-    protected void WriteByLock(Action action)
-    {
-        Lock.EnterWriteLock();
-        try
-        {
-            action?.Invoke();
-        }
-        finally { Lock.ExitWriteLock(); }
-    }
-    protected T WriteByLock<T>(Func<T> func)
-    {
-        Lock.EnterWriteLock();
-        try
-        {
-            return func.Invoke();
-        }
-        finally { Lock.ExitWriteLock(); }
-    }
-    protected void ReadByLock(Action action)
-    {
-        Lock.EnterReadLock();
-        try
-        {
-            action?.Invoke();
-        }
-        finally { Lock.ExitReadLock(); }
-    }
-    protected T ReadByLock<T>(Func<T> func)
-    {
-        Lock.EnterReadLock();
-        try
-        {
-            return func.Invoke();
-        }
-        finally { Lock.ExitReadLock(); }
-    }
-    #endregion 
-
     IGeographyRepositoryStorage Storage;
     private void Save(Layer item) => Storage?.Save(item);
     private void Delete(Layer item) => Storage?.Delete(item);
