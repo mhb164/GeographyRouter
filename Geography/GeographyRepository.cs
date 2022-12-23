@@ -13,7 +13,6 @@ public interface IGeographyRepositoryStorage
     bool Save(Layer item);
     bool Delete(Layer item);
     bool DeleteAllLayers();
-    bool Save(DomainValue item);
     bool Save(LayerElement item);
 
     void WaitFlush();
@@ -73,7 +72,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     private void Save(Layer item) => Storage?.Save(item);
     private void Delete(Layer item) => Storage?.Delete(item);
     private void DeleteAllLayers() => Storage?.DeleteAllLayers();
-    private void Save(DomainValue item) => Storage?.Save(item);
     private void Save(LayerElement item) => Storage?.Save(item);
     private void WaitFlush() => Storage?.WaitFlush();
 
@@ -82,8 +80,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         layers.Clear();
         //layersMatrix.Clear();
         ElecricalMatrix = new LayerElementsMatrixByPoint(GetElement);
-        //---------------------
-        domains.Clear();
         //---------------------
         elements.Clear();
         elementsById.Clear();
@@ -238,7 +234,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                 }
             }
         }
-        layer.Reset(getDomain);
+        layer.Reset();
         Save(layer);
         return UpdateResult.Success();
     }
@@ -281,84 +277,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
     });
     #endregion Layers
-
-    #region Domains
-    Dictionary<string, Domain> domains = new Dictionary<string, Domain>();
-    public void Initial(List<DomainValue> domainValues)
-    {
-        foreach (var item in domainValues) update(item, false);
-    }
-
-    public UpdateResult Update(DomainValue input) => WriteByLock(() => update(input));// Domain.GenerateKey(layercode, fieldcode), Guid.Empty, code, value);;);
-                                                                                      //private DomainValue updateDomain(string key, Guid id, long code, string value)
-    private UpdateResult update(DomainValue input, bool logVersion = true)
-    {
-        var domain = default(Domain);
-        if (domains.ContainsKey(input.DomainKey)) domain = domains[input.DomainKey];
-        else
-        {
-            domain = new Domain(input.DomainKey);
-            domains.Add(domain.Key, domain);
-        }
-        //--------------------------
-        bool changed = false;
-        var domainValue = domain.GetValue(input.Code);// default(DomainValue);
-        if (domainValue == null)
-        {
-            domainValue = new DomainValue()
-            {
-                Id = input.Id,
-                Activation = true,
-                LayerCode = input.LayerCode,
-                FieldCode = input.FieldCode,
-                Code = input.Code,
-                Value = "",
-                Version = 0,
-            };
-            if (domainValue.Id == Guid.Empty) domainValue.Id = Guid.NewGuid();
-            domain.Add(domainValue);
-            changed |= true;
-        }
-        else
-        {
-            if (domainValue.Version >= input.Version) return UpdateResult.Failed($"UpdateDomainValue(Version passed!)");
-        }
-        changed |= domainValue.Activation != input.Activation;
-        domainValue.Activation = input.Activation;
-        changed |= domainValue.Value != input.Value;
-        domainValue.Value = input.Value;
-
-        if (domainValue.Version != input.Version)
-        {
-            changed |= true;
-            domainValue.Version = input.Version;
-            updateVersion(domainValue.Version, logVersion);
-        }
-
-        if (changed) Save(domainValue);
-        return UpdateResult.Success();
-    }
-
-    public List<Domain> Domaines => ReadByLock(() => domains.Values.ToList());
-    public Domain GetDomain(string key)
-    {
-        key = key.ToUpper().Trim();
-        if (domains.ContainsKey(key)) return domains[key];
-        else return null;
-    }
-    public Domain GetDomain(string layercode, string fieldcode) => ReadByLock(() => getDomain(layercode, fieldcode));
-    public Domain getDomain(string layercode, string fieldcode)
-    {
-        var key = DomainValue.GenerateKey(layercode, fieldcode);
-        if (domains.ContainsKey(key)) return domains[key];
-        else
-        {
-            key = DomainValue.GenerateKey("All_Layers", fieldcode);
-            if (domains.ContainsKey(key)) return domains[key];
-            else return null;
-        }
-    }
-    #endregion Domains
 
     #region Elements
     public long ElementsCount => ReadByLock(() => elements.Count);
@@ -417,7 +335,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                 ElecricalMatrix.Add(element);
         }
 
-        element.ResetDisplayname(getDomain);
+        element.ResetDisplayname();
         Save(element);
         return UpdateResult.Success($"[{layer.Code}-{input.Code}] updated.");
     }

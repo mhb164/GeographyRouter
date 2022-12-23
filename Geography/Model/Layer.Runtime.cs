@@ -16,11 +16,11 @@ namespace GeographyModel
 
         public override string ToString() => $"[{Code}] {Displayname}";
 
-        public void Reset(Func<string, string, Domain> getDomainFunc)
+        public void Reset()
         {
             foreach (var item in Fields)
             {
-                item.Reset((string fieldCode) => getDomainFunc?.Invoke(Code, fieldCode));
+                item.Reset();
             }
             OperationStatusField = null;
             if (IsElectrical && !string.IsNullOrWhiteSpace(OperationStatusFieldCode))

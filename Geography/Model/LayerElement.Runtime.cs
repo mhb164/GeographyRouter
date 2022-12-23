@@ -28,7 +28,7 @@ namespace GeographyModel
         [IgnoreDataMember, ScriptIgnore]
         public string[] FieldValues => FieldValuesText.Split('♦');
 
-        public void ResetDisplayname(Func<string, string, Domain> GetDomainFunc)
+        public void ResetDisplayname()
         {
             if (Layer == null) Displayname = "";
             else
@@ -51,14 +51,7 @@ namespace GeographyModel
                             if (field.Index < fieldValues.Length && Displayname.Contains($"{{{field.Code}}}"))
                             {
                                 var value = string.Empty;
-                                var domain = GetDomainFunc?.Invoke(Layer.Code, field.Code);
-                                if (domain == null) value = FieldValues[field.Index];
-                                else
-                                {
-                                    value = domain[FieldValues[field.Index]];
-                                    if (string.IsNullOrWhiteSpace(value))
-                                        value = FieldValues[field.Index];
-                                }
+                                value = FieldValues[field.Index];
                                 Displayname = Displayname.Replace($"{{{field.Code}}}", value);
                             }
 

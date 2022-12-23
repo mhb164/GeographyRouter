@@ -121,9 +121,6 @@
     <Compile Include="GeographyRepository.Commands.cs" />
     <Compile Include="GeographyRepository.IO.cs" />
     <Compile Include="GeographyRepository.cs" />
-    <Compile Include="Model\Domain.cs" />
-    <Compile Include="Model\DomainValue.cs" />
-    <Compile Include="Model\DomainValue.Runtime.cs" />
     <Compile Include="Model\Layer.cs" />
     <Compile Include="Model\Layer.Runtime.cs" />
     <Compile Include="Model\LayerElement.cs" />

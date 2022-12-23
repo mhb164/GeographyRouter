@@ -98,8 +98,6 @@ public partial class GeographyRepository
         var layersFilename = Path.Combine(root, "Layers.json");
         File.WriteAllText(layersFilename, serializer.Serialize(repository.layers.Values.ToList()));
 
-        var domainsFilename = Path.Combine(root, "Domains.json");
-        File.WriteAllText(domainsFilename, serializer.Serialize(repository.domains.Values.SelectMany(x => x.Values).ToList()));
         foreach (var layer in repository.layers.Values)
         {
             if (!repository.elementsByLayerId.ContainsKey(layer.Id)) continue;
@@ -134,19 +132,6 @@ public partial class GeographyRepository
         var layers = serializer.Deserialize<List<Layer>>(File.ReadAllText(layersFilename));
         logAction?.Invoke($"Initial Repository> layers & fields");
         repository.Initial(layers);
-
-        logAction?.Invoke($"Load domains");
-        var domainsFilename = Path.Combine(root, "Domains.json");
-        if (File.Exists(domainsFilename))
-        {
-            var domainValues = serializer.Deserialize<List<DomainValue>>(File.ReadAllText(domainsFilename));
-            logAction?.Invoke($"Initial Repository> domains {domainValues.Count}");
-            repository.Initial(domainValues);
-        }
-        else
-        {
-            logAction?.Invoke($"Initial Repository> domains file not found");
-        }
 
         var layerfilenames = Directory.GetFiles(root, "Layer_*.json").ToList();
         foreach (var layerfilename in layerfilenames)
