@@ -8,16 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-public interface IGeographyRepositoryStorage
-{
-    bool Save(Layer item);
-    bool Delete(Layer item);
-    bool DeleteAllLayers();
-    bool Save(LayerElement item);
-
-    void WaitFlush();
-}
-
 public partial class GeographyRepository : GeographyRouter.IGeoRepository
 {
     readonly Action<string> LogAction;
