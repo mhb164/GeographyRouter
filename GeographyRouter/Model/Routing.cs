@@ -28,8 +28,10 @@ namespace GeographyRouter
         public Dictionary<uint, RoutingItem> ItemsByPrecedence { get; private set; }
         public RoutingItem GetItemsByPrecedence(uint prePrecedence)
         {
-            if (ItemsByPrecedence.ContainsKey(prePrecedence)) return ItemsByPrecedence[prePrecedence];
-            else return null;
+            if (ItemsByPrecedence.TryGetValue(prePrecedence, out var routingItem))
+                return routingItem;
+            else
+                return null;
         }
 
         internal void Add(Route item, uint prePrecedence)
@@ -42,7 +44,7 @@ namespace GeographyRouter
         }
         internal void Add(Node item, uint prePrecedence)
         {
-            if(prePrecedence == 0)
+            if (prePrecedence == 0)
             {
                 SourceNode = item;
             }

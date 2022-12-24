@@ -8,6 +8,8 @@ namespace GeographyRouter
 {
     public interface ILayerElement
     {
+        
+
         string Code { get; }
         bool Connected { get; }
         List<CoordinateRef> Coordinates { get; }

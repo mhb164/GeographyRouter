@@ -11,12 +11,10 @@ using System.Threading.Tasks;
 
 public partial class GeographyRepository
 {
-    Dictionary<string, Layer> layers = new Dictionary<string, Layer>();
-    //Dictionary<Guid, LayerElementsMatrix> layersMatrix = new Dictionary<Guid, LayerElementsMatrix>();
-    LayerElementsMatrix ElecricalMatrix;
     public void Initial(List<Layer> layers)
     {
-        foreach (var item in layers) update(item);
+        foreach (var item in layers)
+            update(item);
     }
 
     public UpdateResult Update(Layer input) => WriteByLock(() => update(input));
@@ -29,10 +27,14 @@ public partial class GeographyRepository
         }
         return UpdateResult.Success();
     });
+
     public UpdateResult Update(string layercode, LayerField inputField) => WriteByLock(() =>
     {
-        if (layers.ContainsKey(layercode) == false) return UpdateResult.Failed($"UpdateLayer(Code:{layercode}) not exists!");
-        var layer = layers[layercode];
+        if (!_layers.TryGetValue(layercode, out var layer))
+        {
+            return UpdateResult.Failed($"UpdateLayer(Code:{layercode}) not exists!");
+        }
+
         var field = layer.Fields.FirstOrDefault(x => x.Code == inputField.Code);
         if (field != null)
         {
@@ -55,9 +57,7 @@ public partial class GeographyRepository
 
     private UpdateResult update(Layer input)
     {
-        var layer = default(Layer);
-        if (layers.ContainsKey(input.Code)) layer = layers[input.Code];
-        else
+        if (!_layers.TryGetValue(input.Code, out var layer))
         {
             layer = new Layer()
             {
@@ -66,19 +66,12 @@ public partial class GeographyRepository
                 GeographyType = input.GeographyType,
                 Fields = new List<LayerField>(),
             };
+
             if (layer.Id == Guid.Empty) layer.Id = Guid.NewGuid();
-            layers.Add(layer.Code, layer);
-
-            //if (layer.GeographyType == LayerGeographyType.Point || layer.GeographyType == LayerGeographyType.Polyline)
-            //    layersMatrix.Add(layer.Id, new LayerElementsMatrixByPoint(GetElement));
-            //else if (layer.GeographyType == LayerGeographyType.Polygon)
-            //    layersMatrix.Add(layer.Id, new LayerElementsMatrixByPoint(GetElement));
-            //else
-            //{
-
-            //}
-
+            _layers.Add(layer.Code, layer);
+            _elementsByLayerId.Add(layer.Id, new List<LayerElement>());
         }
+
         layer.Displayname = input.Displayname;
         layer.IsRoutingSource = input.IsRoutingSource;
         layer.IsElectrical = input.IsElectrical;
@@ -87,6 +80,7 @@ public partial class GeographyRepository
         layer.OperationStatusAbnormalValues = input.OperationStatusAbnormalValues;
         layer.IsNormalOpen = input.IsNormalOpen;
         layer.ElementDisplaynameFormat = input.ElementDisplaynameFormat;
+
         if (input.Fields != null)
         {
             foreach (var inputField in input.Fields)
@@ -108,47 +102,45 @@ public partial class GeographyRepository
                 }
             }
         }
+
         layer.Reset();
         Save(layer);
         return UpdateResult.Success();
     }
 
-    public List<Layer> Layers => ReadByLock(() => layers.Values.ToList());
+    public List<Layer> Layers => ReadByLock(() => _layers.Values.ToList());
     public Layer GetLayer(string layercode) => ReadByLock(() => getLayerWithoutLock(layercode));
     public Layer GetLayer(Guid layerId) => ReadByLock(() => getLayerWithoutLock(layerId));
 
     Layer getLayerWithoutLock(string layercode)
     {
-        if (layers.ContainsKey(layercode)) return layers[layercode];
+        if (_layers.TryGetValue(layercode, out var layer))
+            return layer;
         else return null;
     }
     Layer getLayerWithoutLock(Guid layerId)
     {
-        return layers.Values.FirstOrDefault(x => x.Id == layerId);//TODO: add map and reduce
+        return _layers.Values.FirstOrDefault(x => x.Id == layerId);//TODO: add map and reduce
     }
 
-    public List<Layer> GetLayers(IEnumerable<string> layercodes) => ReadByLock(() =>
+    public List<Layer> GetLayers(IEnumerable<string> layerCodes) => ReadByLock(() =>
     {
         var result = new List<Layer>();
-        foreach (var layercode in layercodes)
+        foreach (var layerCode in layerCodes)
         {
-            if (layers.ContainsKey(layercode))
-                result.Add(layers[layercode]);
+            if (_layers.TryGetValue(layerCode, out var layer))
+                result.Add(layer);
         }
         return result;
     });
-    public List<string> LayersCodes => ReadByLock(() => layers.Keys.ToList());
-    public List<string> DisconnectorLayersCodes => ReadByLock(() => layers.Where(x => x.Value.IsDisconnector).Select(x => x.Key).ToList());
+    public List<string> LayersCodes => ReadByLock(() => _layers.Keys.ToList());
+    public List<string> DisconnectorLayersCodes => ReadByLock(() => _layers.Where(x => x.Value.IsDisconnector).Select(x => x.Key).ToList());
 
     public long GetLayerElementCount(string layerCode) => ReadByLock(() =>
     {
-        if (layers.ContainsKey(layerCode) == false) return -1;
-        else
-        {
-            var layer = layers[layerCode];
-            if (elementsByLayerId.ContainsKey(layer.Id)) return elementsByLayerId[layer.Id].Count;
-            else return 0;
-        }
+        if (!_layers.TryGetValue(layerCode, out var layer)) return -1;
+        if (!_elementsByLayerId.TryGetValue(layer.Id, out var layerElements)) return 0;
+        return layerElements.Count;
     });
 
 }

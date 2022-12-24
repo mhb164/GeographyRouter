@@ -15,18 +15,13 @@ namespace GeographyRouter
             var subject = this;
             while (true)
             {
-                if (Owner.ItemsByPrecedence.ContainsKey(subject.PrePrecedence) == false) break;
-                subject = Owner.ItemsByPrecedence[subject.PrePrecedence];
+                if (!Owner.ItemsByPrecedence.TryGetValue(subject.PrePrecedence, out var newSubject)) break;
+                subject = newSubject;
                 upcomming.Add(subject);
             }
             return upcomming;
         }
 
-        //public void FillDowngoing(ref List<uint> precedences)
-        //{
-        //    if (precedences.Contains(Precedence) == false) precedences.Add(Precedence);
-        //    foreach (var nextPrecedence in NextPrecedences) Owner.ItemsByPrecedence[nextPrecedence].FillDowngoing(ref precedences);
-        //}
         public List<uint> FillDowngoing() => FillDowngoing(this);
         public static List<uint> FillDowngoing(RoutingItem root)
         {
@@ -38,7 +33,7 @@ namespace GeographyRouter
             {
                 var current = queue.Dequeue();
                 //if (precedences.Contains(current.Precedence) == false) 
-                    precedences.Add(current.Precedence);
+                precedences.Add(current.Precedence);
 
                 foreach (var nextPrecedence in current.NextPrecedences)
                     queue.Enqueue(current.Owner.ItemsByPrecedence[nextPrecedence]);
@@ -57,22 +52,14 @@ namespace GeographyRouter
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
-                //if (precedences.Contains(current.Precedence) == false) 
-                    precedences.Add(current.Precedence);
+                precedences.Add(current.Precedence);
 
-                if (current.Owner.ItemsByPrecedence.ContainsKey(current.PrePrecedence))
-                    queue.Enqueue(current.Owner.ItemsByPrecedence[current.PrePrecedence]);
+                if (current.Owner.ItemsByPrecedence.TryGetValue(current.PrePrecedence, out var other))
+                    queue.Enqueue(other);
             }
 
             return new List<uint>(precedences);
         }
 
-        //private void FillUpcomming(List<RoutingItem> upcomming)
-        //{
-        //    if (Owner.ItemsByPrecedence.ContainsKey(PrePrecedence)== false) return;
-        //    var pre = Owner.ItemsByPrecedence[PrePrecedence];
-        //    upcomming.Add(pre);
-        //    pre.FillUpcomming(upcomming);
-        //}
     }
 }

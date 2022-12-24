@@ -25,7 +25,7 @@ public partial class GeographyRepository
         var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
         var layersFilename = Path.Combine(root, "Layers.json");
         var liteLayers = new List<Layer>();
-        foreach (var layer in repository.layers.Values)
+        foreach (var layer in repository._layers.Values)
         {
             if (layer.IsElectrical == false) continue;
             var liteLayer = new Layer()
@@ -54,13 +54,13 @@ public partial class GeographyRepository
         }
         File.WriteAllText(layersFilename, serializer.Serialize(liteLayers));
 
-        foreach (var layer in repository.layers.Values)
+        foreach (var layer in repository._layers.Values)
         {
             if (layer.IsElectrical == false) continue;
+            if (!repository._elementsByLayerId.TryGetValue(layer.Id, out var layerElements)) continue;
 
-            if (!repository.elementsByLayerId.ContainsKey(layer.Id)) continue;
             var counter = 0;
-            foreach (var splited in SplitList(repository.elementsByLayerId[layer.Id]))
+            foreach (var splited in SplitList(layerElements))
             {
                 counter++;
                 var layerElementsFilename = Path.Combine(root, $"Layer_{layer.Code}_{counter}.json");
@@ -96,13 +96,14 @@ public partial class GeographyRepository
 
         var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
         var layersFilename = Path.Combine(root, "Layers.json");
-        File.WriteAllText(layersFilename, serializer.Serialize(repository.layers.Values.ToList()));
+        File.WriteAllText(layersFilename, serializer.Serialize(repository._layers.Values.ToList()));
 
-        foreach (var layer in repository.layers.Values)
+        foreach (var layer in repository._layers.Values)
         {
-            if (!repository.elementsByLayerId.ContainsKey(layer.Id)) continue;
+            if (!repository._elementsByLayerId.TryGetValue(layer.Id, out var layerElements)) continue;
+
             var counter = 0;
-            foreach (var splited in SplitList(repository.elementsByLayerId[layer.Id]))
+            foreach (var splited in SplitList(layerElements))
             {
                 counter++;
                 var layerElementsFilename = Path.Combine(root, $"Layer_{layer.Code}_{counter}.json");
@@ -124,30 +125,64 @@ public partial class GeographyRepository
         var repository = (GeographyRepository)instance;
         var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
 
-        logAction?.Invoke($"Initial Repository start");
-        repository.BeginInitial();
+        InvokeByStopwatch(
+            $"Initial Repository",
+            logAction,
+            () =>
+            {
+                repository.BeginInitial();
 
-        logAction?.Invoke($"Load layers & fields");
-        var layersFilename = Path.Combine(root, "Layers.json");
-        var layers = serializer.Deserialize<List<Layer>>(File.ReadAllText(layersFilename));
-        logAction?.Invoke($"Initial Repository> layers & fields");
-        repository.Initial(layers);
+                var layersFilename = Path.Combine(root, "Layers.json");
 
-        var layerfilenames = Directory.GetFiles(root, "Layer_*.json").ToList();
-        foreach (var layerfilename in layerfilenames)
-        {
-            var layerCode = Path.GetFileNameWithoutExtension(layerfilename).Replace("Layer_", "");
-            layerCode = layerCode.Substring(0, layerCode.LastIndexOf('_'));
-            logAction?.Invoke($"Load elements {layerfilenames.IndexOf(layerfilename) + 1} of {layerfilenames.Count} ({Path.GetFileNameWithoutExtension(layerfilename)})");
-            var layerElements = serializer.Deserialize<List<LayerElement>>(File.ReadAllText(layerfilename));
-            logAction?.Invoke($"Initial Repository> elements of {layerCode}");
-            repository.Initial(layerCode, layerElements);
+                var layers = InvokeByStopwatch(
+                    "Load layers & fields",
+                    logAction,
+                    () => serializer.Deserialize<List<Layer>>(File.ReadAllText(layersFilename)));
 
-        }
-        repository.EndInitial(null);
+                InvokeByStopwatch(
+                    "Initial Repository> layers & fields",
+                    logAction, () => repository.Initial(layers));
+
+                var layerfilenames = Directory.GetFiles(root, "Layer_*.json")
+                                              .ToList();
+               
+                foreach (var layerfilename in layerfilenames)
+                {
+                    var layerCode = Path.GetFileNameWithoutExtension(layerfilename).Replace("Layer_", "");
+                    layerCode = layerCode.Substring(0, layerCode.LastIndexOf('_'));
+
+                    var layerElements = InvokeByStopwatch(
+                        $"Load elements {layerfilenames.IndexOf(layerfilename) + 1} of {layerfilenames.Count} ({Path.GetFileNameWithoutExtension(layerfilename)})",
+                        logAction,
+                        () => serializer.Deserialize<List<LayerElement>>(File.ReadAllText(layerfilename)));
+
+                    InvokeByStopwatch(
+                        $"Initial Repository> elements of {layerCode}",
+                        logAction, () => repository.Initial(layerCode, layerElements));
+                }
+                repository.EndInitial(null);
+            });
 
         return instance;
     }
 
+    private static T InvokeByStopwatch<T>(string title, Action<string> logAction, Func<T> func)
+    {
+        //logAction?.Invoke($"{title} begin...");
+        var stopwatch = Stopwatch.StartNew();
+        var result = func.Invoke();
+        stopwatch.Stop();
+        logAction?.Invoke($"{title} end ({stopwatch.ElapsedMilliseconds:N0} ms)");
 
+        return result;
+    }
+
+    private static void InvokeByStopwatch(string title, Action<string> logAction, Action action)
+    {
+        //logAction?.Invoke($"{title} begin...");
+        var stopwatch = Stopwatch.StartNew();
+        action.Invoke();
+        stopwatch.Stop();
+        logAction?.Invoke($"{title} end ({stopwatch.ElapsedMilliseconds:N0} ms)");
+    }
 }

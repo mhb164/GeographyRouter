@@ -16,6 +16,14 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         LogAction = logAction;
         Log("Created");
     }
+
+    Dictionary<string, Layer> _layers = new Dictionary<string, Layer>();
+    Dictionary<string, LayerElement> _elements = new Dictionary<string, LayerElement>();
+    Dictionary<Guid, LayerElement> _elementsById = new Dictionary<Guid, LayerElement>();
+    Dictionary<Guid, List<LayerElement>> _elementsByLayerId = new Dictionary<Guid, List<LayerElement>>();
+    LayerElementsMatrix ElecricalMatrix;
+
+
     protected void Log(string message) => LogAction?.Invoke(message);
 
     IGeographyRepositoryStorage Storage;
@@ -27,13 +35,12 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public void BeginInitial()
     {
-        layers.Clear();
-        //layersMatrix.Clear();
+        _layers.Clear();
+        _elementsByLayerId.Clear();
         ElecricalMatrix = new LayerElementsMatrixByPoint(GetElement);
         //---------------------
-        elements.Clear();
-        elementsById.Clear();
-        elementsByLayerId.Clear();
+        _elements.Clear();
+        _elementsById.Clear();
         //---------------------
         version = 0;
         versionChangeRequestStopwatch.Restart();
@@ -84,5 +91,5 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     const string StructureLockedErrorMessage = "اطلاعات المان‌ها ثبت شده و امکان تغییر ساختاری وجود ندارد!";
 
     public bool StructureLocked => ReadByLock(() => isStructureLocked);
-    private bool isStructureLocked => elements.Count > 0;
+    private bool isStructureLocked => _elements.Count > 0;
 }

@@ -30,8 +30,10 @@ namespace GeographyRouter
 
         public RoutingItem GetRouting(string code)
         {
-            if (routingPairs.ContainsKey(code)) return routingPairs[code];
-            else return null;
+            if (routingPairs.TryGetValue(code, out var routingItem))
+                return routingItem;
+            else 
+                return null;
         }
 
         private void Add(ILayerElement element, RoutingItem routingItem)

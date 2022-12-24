@@ -21,53 +21,69 @@ namespace GeographyModel
     {
         public LayerElementsMatrixByPoint(Func<Guid, LayerElement> getElementById_Func) : base(getElementById_Func) { }
 
-        Dictionary<Guid, List<ulong>> lookupsByElements = new Dictionary<Guid, List<ulong>>();
-        Dictionary<ulong, Dictionary<ulong, List<Guid>>> lookups = new Dictionary<ulong, Dictionary<ulong, List<Guid>>>();
+        Dictionary<Guid, HashSet<ulong>> lookupsByElements = new Dictionary<Guid, HashSet<ulong>>();
+        Dictionary<ulong, Dictionary<ulong, HashSet<Guid>>> lookups = new Dictionary<ulong, Dictionary<ulong, HashSet<Guid>>>();
         static ulong CreateKey1(double latitude, double longitude) => (ulong)Math.Floor(latitude * 1000) << 32 | (ulong)Math.Floor(longitude * 1000);
         static ulong CreateKey2(double latitude, double longitude) => (ulong)Math.Floor(latitude * 1000000) << 32 | (ulong)Math.Floor(longitude * 1000000);
 
         public override void Add(LayerElement element)
         {
-            if (lookupsByElements.ContainsKey(element.Id) == false) lookupsByElements.Add(element.Id, new List<ulong>());
+            if (!lookupsByElements.TryGetValue(element.Id, out var elementLookup))
+            {
+                elementLookup = new HashSet<ulong>();
+                lookupsByElements.Add(element.Id, elementLookup);
+            }
+
             if (element.Points.Length >= 2)
-                Add(ref element.Points[0], ref element.Points[1], element);
+                Add(ref element.Points[0], ref element.Points[1], element, elementLookup);
             if (element.Points.Length >= 4)
-                Add(ref element.Points[element.Points.Length - 2], ref element.Points[element.Points.Length - 1], element);
+                Add(ref element.Points[element.Points.Length - 2], ref element.Points[element.Points.Length - 1], element, elementLookup);
         }
 
-        private void Add(ref double latitude, ref double longitude, LayerElement element)
+        private void Add(ref double latitude, ref double longitude, LayerElement element, HashSet<ulong> elementLookup)
         {
             var key1 = CreateKey1(latitude, longitude);
             var key2 = CreateKey2(latitude, longitude);
-            if (!lookups.ContainsKey(key1)) lookups.Add(key1, new Dictionary<ulong, List<Guid>>());
-            if (!lookups[key1].ContainsKey(key2)) lookups[key1].Add(key2, new List<Guid>());
-            if (lookups[key1][key2].Contains(element.Id)) return;
+            if (!lookups.TryGetValue(key1, out var key1Lookup))
+            {
+                key1Lookup = new Dictionary<ulong, HashSet<Guid>>();
+                lookups.Add(key1, key1Lookup);
+            }
 
-            lookups[key1][key2].Add(element.Id);
-            if (lookupsByElements[element.Id].Contains(key1) == false) lookupsByElements[element.Id].Add(key1);
+            if (!key1Lookup.TryGetValue(key2, out var key1Key2Lookup))
+            {
+                key1Key2Lookup = new HashSet<Guid>();
+                key1Lookup.Add(key2, key1Key2Lookup);
+            }
+
+            if (!key1Key2Lookup.Add(element.Id)) return;
+            elementLookup.Add(key1);
         }
 
         public override void Remove(LayerElement element)
         {
-            if (lookupsByElements.ContainsKey(element.Id) == false) return;
-            foreach (var key in lookupsByElements[element.Id])
+            if (!lookupsByElements.TryGetValue(element.Id, out var elementLookup)) return;
+
+            foreach (var key in elementLookup)
             {
-                if (lookups.ContainsKey(key) == false) continue;
-                foreach (var lookup in lookups[key].Values)
-                    if (lookup.Contains(element.Id))
-                        lookup.Remove(element.Id);
+                if (!lookups.TryGetValue(key, out var key1Lookup)) continue;
+
+                foreach (var lookup in key1Lookup.Values)
+                    lookup.Remove(element.Id);
             }
+
             lookupsByElements.Remove(element.Id);
         }
 
         public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute)
         {
             var key1 = CreateKey1(latitude, longitude);
-            if (lookups.ContainsKey(key1) == false) return;
+            if (!lookups.TryGetValue(key1, out var key1Lookup)) return;
+
             var key2 = CreateKey2(latitude, longitude);
-            if (lookups[key1].ContainsKey(key2) == false) return;
-            var lookup = lookups[key1][key2];
-            foreach (var elementId in lookup)
+            if (!key1Lookup.TryGetValue(key2, out var key1Key2Lookup)) return;
+
+            foreach (var elementId in key1Key2Lookup)
             {
                 var element = GetElement(elementId);
                 if (element == null) continue;
@@ -96,6 +112,7 @@ namespace GeographyModel
 
         }
     }
+
     public partial class LayerElementsMatrixByPolygon : LayerElementsMatrix
     {
         public LayerElementsMatrixByPolygon(Func<Guid, LayerElement> getElementById_Func) : base(getElementById_Func) { }

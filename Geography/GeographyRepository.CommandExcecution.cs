@@ -41,7 +41,7 @@ public partial class GeographyRepository
             return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
 
 
-        layers.Remove(layer.Code);
+        _layers.Remove(layer.Code);
         Delete(layer);
         return UpdateResult.Success();
 
@@ -52,7 +52,7 @@ public partial class GeographyRepository
         if (isStructureLocked)
             return UpdateResult.Failed(StructureLockedErrorMessage);
 
-        layers.Clear();
+        _layers.Clear();
         DeleteAllLayers();
         return UpdateResult.Success();
     });
@@ -68,7 +68,7 @@ public partial class GeographyRepository
         if (!layer.IsElectrical)
             return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
 
-        foreach (var item in layers.Values)
+        foreach (var item in _layers.Values)
         {
             var isRoutingSource = item.Id == command.LayerId;
             if (item.IsRoutingSource == isRoutingSource)
