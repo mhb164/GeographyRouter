@@ -23,8 +23,10 @@ namespace GeographyRouter
 
         private List<Routing> routings = new List<Routing>();
         private Dictionary<string, RoutingItem> routingPairs = new Dictionary<string, RoutingItem>();
+        private List<List<string>> _collisions = new List<List<string>>();
 
         public IEnumerable<Routing> Routings => routings;
+        public IEnumerable<IEnumerable<string>> Collisions => _collisions;
 
         private void Log(string message) => LogAction?.Invoke(message);
 

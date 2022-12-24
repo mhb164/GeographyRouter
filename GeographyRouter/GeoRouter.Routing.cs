@@ -25,7 +25,7 @@ namespace GeographyRouter
             var RoutingSources = Repo.GetRoutingSources();
             foreach (var item in RoutingSources.OrderBy(x => x.Code))
             {
-                BuildRouting(item);               
+                BuildRouting(item);
             }
 
             foreach (var item in routings)
@@ -46,6 +46,35 @@ namespace GeographyRouter
                 }
             }
 
+
+            var collisions = new Dictionary<string, List<Routing>>();
+
+            foreach (var routing in routings)
+            {
+                var result = HitTest(routing.Source.CoordinateFirst, false);
+                foreach (var item in result)
+                {
+                    var routingItem = GetRouting(item.Code);
+                    if (routingItem.Owner != routing)
+                    {
+                        if (!collisions.TryGetValue(routingItem.Owner.Source.Code, out var collision))
+                        {
+                            collision = new List<Routing>();
+                            collisions.Add(routingItem.Owner.Source.Code, collision);
+                        }
+                        collision.Add(routing);
+                        break;
+                    }
+                }
+            }
+
+            _collisions = collisions.Select(x =>
+            {
+                var newCollision = new List<string>() { x.Key };
+                newCollision.AddRange(x.Value.Select(y => y.Source.Code));
+                return newCollision;
+            }).ToList();
+
             stopwatch.Stop();
             Log($"Routing finished({stopwatch.Elapsed.TotalSeconds:N3}s)");
         }
@@ -60,7 +89,7 @@ namespace GeographyRouter
             this.Add(source, sourceNode);
         }
 
-        private Routing CreateRouting(Routing  routing)
+        private Routing CreateRouting(Routing routing)
         {
             //var routing = new Routing(source);
             //routings.Add(routing);
@@ -157,7 +186,7 @@ namespace GeographyRouter
             //var sourceNode = new Node(routing, null, source);
             //routing.Add(sourceNode, 0);
             //assistant.Add(source, sourceNode);
-            
+
 
             var HitTestResult = assistant.HitTest(routing.SourceNode.Coordinate, false);
             var IsDeadend = CheckIsDeadend(assistant, HitTestResult.Where(x => x.GeographyTypeIsPoint), routing.SourceNode, routing.Source);
@@ -169,7 +198,7 @@ namespace GeographyRouter
                 {
                     if (item.Routed) continue;
                     if (routing.SourceNode.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
-                                                                                                             //CreateRoute(new CreateRouteParameters(assistant, routing, item, node));
+                                                                                                                     //CreateRoute(new CreateRouteParameters(assistant, routing, item, node));
                     CreateRouteByStack(new CreateRouteParameters(assistant, routing, item, routing.SourceNode));
                 }
             }
