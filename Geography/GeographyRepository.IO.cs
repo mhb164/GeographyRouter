@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -119,11 +121,58 @@ public partial class GeographyRepository
         }
     }
 
+
+    public static T DeSerializeEntity<T>(string filename)
+    {
+        using (var stream = File.OpenRead(filename))
+        {
+            return (T)new DataContractJsonSerializer(typeof(T)).ReadObject(stream);
+        }
+    }
+
+    private static readonly Regex LayerFilePattern = new Regex(@"Layer_(?<layerCode>\D+)_(?<num>\d+)");
     public static T Load<T>(string root, Action<string> logAction) where T : GeographyRepository
     {
+        var layers = default(List<Layer>);
+        var layerElementsPackage = new Dictionary<string, List<LayerElement>>();
+
+        InvokeByStopwatch(
+           $"Load data",
+           logAction,
+           () =>
+           {
+               layers = DeSerializeEntity<List<Layer>>(Path.Combine(root, "Layers.json"));
+
+               var refined = Directory.GetFiles(root, "Layer_*.json").Select(layerfilename =>
+               {
+                   var name = Path.GetFileNameWithoutExtension(layerfilename);
+                   var layerCode = LayerFilePattern.Match(name).Groups["layerCode"].Value;
+                   var layerFileNumber = int.Parse(LayerFilePattern.Match(name).Groups["num"].Value);
+
+                   return (Filename: layerfilename,
+                           Name: name,
+                           LayerCode: layerCode,
+                           LayerFileNumber: layerFileNumber);
+               });
+
+               foreach (var item in refined.GroupBy(x => x.LayerCode))
+               {
+                   layerElementsPackage.Add(item.Key, new List<LayerElement>(item.Count() * 5000));
+               }
+
+               Parallel.ForEach(refined, (refinedItem) =>
+               {
+                   var layerElements = DeSerializeEntity<List<LayerElement>>(refinedItem.Filename);
+                   lock (layerElementsPackage)
+                   {
+                       layerElementsPackage[refinedItem.LayerCode].AddRange(layerElements);
+                   }
+               });
+
+           });
+       
         var instance = (T)Activator.CreateInstance(typeof(T), new object[] { logAction });
         var repository = (GeographyRepository)instance;
-        var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
 
         InvokeByStopwatch(
             $"Initial Repository",
@@ -132,54 +181,26 @@ public partial class GeographyRepository
             {
                 repository.BeginInitial();
 
-                var layersFilename = Path.Combine(root, "Layers.json");
-
-                var layers = InvokeByStopwatch(
-                    "Load layers & fields",
-                    logAction,
-                    () => serializer.Deserialize<List<Layer>>(File.ReadAllText(layersFilename)));
-
                 InvokeByStopwatch(
                     "Initial Repository> layers & fields",
                     logAction, () => repository.Initial(layers));
 
-                var layerfilenames = Directory.GetFiles(root, "Layer_*.json")
-                                              .ToList();
-               
-                foreach (var layerfilename in layerfilenames)
+                foreach (var layerElementsPackageItem in layerElementsPackage)
                 {
-                    var layerCode = Path.GetFileNameWithoutExtension(layerfilename).Replace("Layer_", "");
-                    layerCode = layerCode.Substring(0, layerCode.LastIndexOf('_'));
-
-                    var layerElements = InvokeByStopwatch(
-                        $"Load elements {layerfilenames.IndexOf(layerfilename) + 1} of {layerfilenames.Count} ({Path.GetFileNameWithoutExtension(layerfilename)})",
-                        logAction,
-                        () => serializer.Deserialize<List<LayerElement>>(File.ReadAllText(layerfilename)));
-
                     InvokeByStopwatch(
-                        $"Initial Repository> elements of {layerCode}",
-                        logAction, () => repository.Initial(layerCode, layerElements));
+                        $"Initial Repository> elements of {layerElementsPackageItem.Key}",
+                        logAction, () => repository.Initial(layerElementsPackageItem.Key, layerElementsPackageItem.Value));
                 }
+
                 repository.EndInitial(null);
             });
 
         return instance;
     }
 
-    private static T InvokeByStopwatch<T>(string title, Action<string> logAction, Func<T> func)
-    {
-        //logAction?.Invoke($"{title} begin...");
-        var stopwatch = Stopwatch.StartNew();
-        var result = func.Invoke();
-        stopwatch.Stop();
-        logAction?.Invoke($"{title} end ({stopwatch.ElapsedMilliseconds:N0} ms)");
-
-        return result;
-    }
-
     private static void InvokeByStopwatch(string title, Action<string> logAction, Action action)
     {
-        //logAction?.Invoke($"{title} begin...");
+        logAction?.Invoke($"{title} begin...");
         var stopwatch = Stopwatch.StartNew();
         action.Invoke();
         stopwatch.Stop();
