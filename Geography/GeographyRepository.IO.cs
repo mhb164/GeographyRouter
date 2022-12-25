@@ -48,7 +48,13 @@ public partial class GeographyRepository
 
             if (layer.OperationStatusField != null)
             {
-                liteLayer.Fields.Add(layer.OperationStatusField);
+                liteLayer.ElementDisplaynameFormat = "{LAYERNAME} ({CONNECTED}, {CODE})";
+                liteLayer.Fields.Add(new LayerField()
+                {
+                    Index = 0,
+                    Code = layer.OperationStatusField.Code,
+                    Displayname = layer.OperationStatusField.Displayname,
+                });
                 liteLayer.OperationStatusFieldCode = layer.OperationStatusFieldCode;
                 liteLayer.OperationStatusAbnormalValues = layer.OperationStatusAbnormalValues;
             }
@@ -77,13 +83,9 @@ public partial class GeographyRepository
                         Code = item.Code,
                         Version = item.Version,
                         Points = item.Points,
-                        FieldValuesText = ""
+                        FieldValuesText = layer.OperationStatusField is null ? "" : layer.OperationStatusField.GetValue(item.FieldValues),
                     };
 
-                    if (layer.OperationStatusField != null)
-                    {
-                        liteLayerElement.FieldValuesText = layer.OperationStatusField.GetValue(item.FieldValues);
-                    }
                     liteLayerElements.Add(liteLayerElement);
                 }
                 File.WriteAllText(layerElementsFilename, serializer.Serialize(liteLayerElements));
@@ -170,7 +172,7 @@ public partial class GeographyRepository
                });
 
            });
-       
+
         var instance = (T)Activator.CreateInstance(typeof(T), new object[] { logAction });
         var repository = (GeographyRepository)instance;
 
