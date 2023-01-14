@@ -4,14 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Web.Script.Serialization;
 
 namespace GeographyModel
 {
     public partial class Layer
     {
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public LayerField OperationStatusField { get; private set; }
 
         public override string ToString() => $"[{Code}] {Displayname}";

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Web.Script.Serialization;
+using System.Text.Json.Serialization;
 
 namespace GeographyModel
 {
@@ -14,7 +14,7 @@ namespace GeographyModel
         public static Func<string, bool?> GetConnectivityFunc;
         static bool? GetConnectivity(string code) => GetConnectivityFunc?.Invoke(code);
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public bool Connected
         {
             get
@@ -39,25 +39,25 @@ namespace GeographyModel
             }
         }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         bool GeographyRouter.ILayerElement.GeographyTypeIsPoint => Layer.GeographyType == LayerGeographyType.Point;
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         bool GeographyRouter.ILayerElement.GeographyTypeIsLine => Layer.GeographyType == LayerGeographyType.Polyline;
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         bool GeographyRouter.ILayerElement.GeographyTypeIsPolygon => Layer.GeographyType == LayerGeographyType.Polygon;
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public List<GeographyRouter.CoordinateRef> Coordinates { get; private set; }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public GeographyRouter.CoordinateRef CoordinateFirst { get; private set; }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public GeographyRouter.CoordinateRef CoordinateLast { get; private set; }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public bool Routed { get; set; }
 
         public void ResetRouting()
