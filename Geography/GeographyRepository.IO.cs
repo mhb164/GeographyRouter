@@ -6,10 +6,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Script.Serialization;
 
 public partial class GeographyRepository
 {
@@ -24,7 +24,6 @@ public partial class GeographyRepository
         if (Directory.Exists(root)) Directory.Delete(root, true);
         Directory.CreateDirectory(root);
 
-        var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
         var layersFilename = Path.Combine(root, "Layers.json");
         var liteLayers = new List<Layer>();
         foreach (var layer in repository._layers.Values)
@@ -60,7 +59,7 @@ public partial class GeographyRepository
             }
             liteLayers.Add(liteLayer);
         }
-        File.WriteAllText(layersFilename, serializer.Serialize(liteLayers));
+        File.WriteAllText(layersFilename, JsonSerializer.Serialize(liteLayers));
 
         foreach (var layer in repository._layers.Values)
         {
@@ -88,7 +87,7 @@ public partial class GeographyRepository
 
                     liteLayerElements.Add(liteLayerElement);
                 }
-                File.WriteAllText(layerElementsFilename, serializer.Serialize(liteLayerElements));
+                File.WriteAllText(layerElementsFilename, JsonSerializer.Serialize(liteLayerElements));
             }
         }
     }
@@ -98,9 +97,8 @@ public partial class GeographyRepository
         if (Directory.Exists(root)) Directory.Delete(root, true);
         Directory.CreateDirectory(root);
 
-        var serializer = new JavaScriptSerializer() { MaxJsonLength = int.MaxValue };
         var layersFilename = Path.Combine(root, "Layers.json");
-        File.WriteAllText(layersFilename, serializer.Serialize(repository._layers.Values.ToList()));
+        File.WriteAllText(layersFilename, JsonSerializer.Serialize(repository._layers.Values.ToList()));
 
         foreach (var layer in repository._layers.Values)
         {
@@ -111,7 +109,7 @@ public partial class GeographyRepository
             {
                 counter++;
                 var layerElementsFilename = Path.Combine(root, $"Layer_{layer.Code}_{counter}.json");
-                File.WriteAllText(layerElementsFilename, serializer.Serialize(splited));
+                File.WriteAllText(layerElementsFilename, JsonSerializer.Serialize(splited));
             }
         }
     }

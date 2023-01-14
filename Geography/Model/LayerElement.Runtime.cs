@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Web.Script.Serialization;
+using System.Text.Json.Serialization;
 
 namespace GeographyModel
 {
@@ -20,13 +20,13 @@ namespace GeographyModel
             Layer = null;
         }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public Layer Layer { get; private set; }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public string Displayname { get; private set; }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public string[] FieldValues => FieldValuesText.Split('♦');
 
         public void ResetDisplayname()
@@ -64,7 +64,7 @@ namespace GeographyModel
                         }
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     Displayname = $"{Layer.Displayname} ({Code})";
                 }
@@ -164,7 +164,7 @@ namespace GeographyModel
             return true;
         }
 
-        [IgnoreDataMember, ScriptIgnore]
+        [IgnoreDataMember, JsonIgnore]
         public double DistanceInKm => CalculateDistance(this);
         internal static double CalculateDistance(LayerElement element)
         {
