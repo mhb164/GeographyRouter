@@ -66,9 +66,9 @@ namespace Geography.TestApp
         });
         private void LoadRepo()
         {
-            using (var dialog = new FolderSelectDialog() { Title = "Select Tile Localizer Root Directory" })
-                if (dialog.ShowDialog())
-                    LoadRepo(dialog.FileName);
+            using (var dialog = new FolderBrowserDialog() { Description = "Select Root Directory" })
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                    LoadRepo(dialog.SelectedPath);
         }
 
         private void LoadRepo(string directory)
