@@ -197,6 +197,7 @@ namespace GeographyRouter
                 foreach (var item in HitTestResult.Where(x => x.GeographyTypeIsLine))
                 {
                     if (item.Routed) continue;
+                    if (!item.Connected) continue;
                     if (routing.SourceNode.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
                                                                                                                      //CreateRoute(new CreateRouteParameters(assistant, routing, item, node));
                     CreateRouteByStack(new CreateRouteParameters(assistant, routing, item, routing.SourceNode));
@@ -304,11 +305,11 @@ namespace GeographyRouter
                         }
                         break;
                     }
-                    else if (HitTestResultLines.Count() == 0)//End
+                    else if (!HitTestResultLines.Any())//End
                     {
                         break;//return;
                     }
-                    else if (HitTestResultLines.Count() > 1)//Lines
+                    else if (HitTestResultLines.Count > 1)//Lines
                     {
                         var newbranch = CreateBranch(parameters.Routing, parameters.Route, parameters.Route.Output);
                         parameters.Route.Add(newbranch);
@@ -316,6 +317,7 @@ namespace GeographyRouter
                         foreach (var item in HitTestResultLines.ToList())
                         {
                             if (item.Routed) continue;
+                            if (!item.Connected) continue;
                             //CreateRoute(new CreateRouteParameters(parameters.Assistant, parameters.Routing, item, newbranch));
                             queue.Enqueue(new CreateRouteParameters(parameters.Assistant, parameters.Routing, item, newbranch));
 

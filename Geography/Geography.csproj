@@ -2,19 +2,38 @@
 	<PropertyGroup>
 		<TargetFrameworks>net7.0;net6.0;netstandard2.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
-		<Title>Geography</Title>
+		<Version>1.5</Version>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>${Version}</FileVersion>
+		<Title>$(PackageId)</Title>
 		<Authors>Hamed Bonakdar</Authors>
+		<Copyright>Hamed Bonakdar (mhb164)</Copyright>
 		<RepositoryUrl>https://github.com/mhb164/GeographyRouter</RepositoryUrl>
-
+		<PackageProjectUrl>https://github.com/mhb164/GeographyRouter</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageId>PowerGridGeography</PackageId>
+		<PackageTags>PowerGrid,Geography,Routing</PackageTags>
+		<TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="System.Text.Json" Version="5.0.0"/>
+		<PackageReference Include="System.Text.Json" Version="5.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\GeographyRouter\GeographyRouter.csproj" />
+		<ProjectReference Include="..\GeographyRouter\GeographyRouter.csproj" PrivateAssets="All">
+		</ProjectReference>
+		<None Include="..\README.md" Pack="true" PackagePath="\"/>
+		<None Include="..\LICENSE" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
+	<Target Name="CopyProjectReferencesToPackage" DependsOnTargets="BuildOnlySettings;ResolveReferences">
+		<ItemGroup>
+			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('PrivateAssets', 'All'))" />
+		</ItemGroup>
+	</Target>
+	
 </Project>
 
