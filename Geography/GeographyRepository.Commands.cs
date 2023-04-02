@@ -233,7 +233,7 @@ public partial class GeographyRepository
         {
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
 
-            ElementCode = elementCode;
+            ElementCode = elementCode.ToUpperInvariant().Trim();
             Timetag = timetag;
             Points = points;
             DescriptorValues = descriptorValues;

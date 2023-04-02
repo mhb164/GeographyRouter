@@ -6,23 +6,19 @@ using System.Text;
 
 namespace GeographyModel
 {
-
     [DataContract]
     public partial class LayerElement
     {
         [DataMember(Order = 01)]
-        public Guid Id { get; set; }
-
-        [DataMember(Order = 02)]
         public string Code { get; set; }
 
-        [DataMember(Order = 03)]
+        [DataMember(Order = 01)]
         public long Version { get; set; }
 
-        [DataMember(Order = 04)]
+        [DataMember(Order = 03)]
         public double[] Points { get; set; }
 
-        [DataMember(Order = 05)]
+        [DataMember(Order = 04)]
         public string FieldValuesText { get; set; }
     }
 

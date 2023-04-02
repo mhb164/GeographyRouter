@@ -34,7 +34,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         {
             element = new LayerElement()
             {
-                Id = input.Id,
                 Code = input.Code,
                 Points = new double[] { },
                 FieldValuesText = "",
@@ -42,9 +41,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             };
             element.Reset(layer);
 
-            if (element.Id == Guid.Empty) element.Id = Guid.NewGuid();
             _elements.Add(element.Code, element);
-            _elementsById.Add(element.Id, element);
             _elementsByLayerCode[element.Layer.Code].Add(element);
         }
         //------------------
@@ -77,7 +74,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             return UpdateResult.Failed($"[{layerCode}-{elementCode}] DeleteElement(Version passed!)");
 
         _elements.Remove(element.Code);
-        _elementsById.Remove(element.Id);
         _elementsByLayerCode[element.Layer.Code].Remove(element);
         ElecricalMatrix.Remove(element);
 
@@ -107,14 +103,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                 result.Add(element);
         }
         return result;
-    }
-
-    public LayerElement GetElement(Guid id)
-    {
-        if (_elementsById.TryGetValue(id, out var element))
-            return element;
-        else
-            return null;
     }
 
     public IEnumerable<LayerElement> GetElements(IEnumerable<Layer> owners, long version)

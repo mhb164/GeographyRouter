@@ -268,7 +268,6 @@ public partial class GeographyRepository
 
                 var element = new LayerElement()
                 {
-                    Id = Guid.Empty,
                     Code = item.ElementCode,
                     Points = item.Points,
                     FieldValuesText = LayerElement.TranslateFieldValues(elementFieldValues),

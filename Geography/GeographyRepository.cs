@@ -19,7 +19,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     Dictionary<string, Layer> _layers = new Dictionary<string, Layer>();
     Dictionary<string, LayerElement> _elements = new Dictionary<string, LayerElement>();
-    Dictionary<Guid, LayerElement> _elementsById = new Dictionary<Guid, LayerElement>();
     Dictionary<string, List<LayerElement>> _elementsByLayerCode = new Dictionary<string, List<LayerElement>>();
     LayerElementsMatrix ElecricalMatrix;
 
@@ -41,7 +40,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         ElecricalMatrix = new LayerElementsMatrixByPoint(GetElement);
         //---------------------
         _elements.Clear();
-        _elementsById.Clear();
         //---------------------
         version = 0;
         versionChangeRequestStopwatch.Restart();
