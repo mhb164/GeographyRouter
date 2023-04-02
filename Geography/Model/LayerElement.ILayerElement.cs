@@ -23,7 +23,7 @@ namespace GeographyModel
                 if (connectivity.HasValue) return connectivity.Value;
                 //-------------
                 if (Layer == null) return false;
-                if (Layer.IsElectrical == false) return false;
+                if (!Layer.IsElectrical) return false;
                 //-------------
                 var normalValue = !Layer.IsNormalOpen;// Close: connected, Open: disconnectd
                 if (Layer.OperationStatusField == null) return normalValue;

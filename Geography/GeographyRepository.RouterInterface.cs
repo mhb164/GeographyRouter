@@ -22,7 +22,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     {        
         var layer = _layers.Values.FirstOrDefault(x => x.IsRoutingSource);
 
-        if (layer == null || !_elementsByLayerId.TryGetValue(layer.Id, out var layerElements))
+        if (layer == null || !_elementsByLayerCode.TryGetValue(layer.Code, out var layerElements))
         {
             return new List<GeographyRouter.ILayerElement>();
         }
@@ -45,9 +45,10 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         var result = new List<string>();
         foreach (var element in _elements.Values)
         {
-            if (element.Layer.IsElectrical == false) continue;
+            if (!element.Layer.IsElectrical) continue;
             if (element.Routed) continue;
-            else result.Add(element.Code);
+            
+            result.Add(element.Code);
         }
         return result;
     });

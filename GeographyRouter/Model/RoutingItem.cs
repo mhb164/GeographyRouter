@@ -32,7 +32,7 @@ namespace GeographyRouter
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
-                //if (precedences.Contains(current.Precedence) == false) 
+
                 precedences.Add(current.Precedence);
 
                 foreach (var nextPrecedence in current.NextPrecedences)

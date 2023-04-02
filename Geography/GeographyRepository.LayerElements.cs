@@ -26,7 +26,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     {
         if (_elements.TryGetValue(input.Code, out var element))
         {
-            if (element.Layer.Id != layer.Id) return UpdateResult.Failed($"[{layer.Code}-{input.Code}] UpdateElement(Layer mismatch!)");
+            if (element.Layer.Code != layer.Code) return UpdateResult.Failed($"[{layer.Code}-{input.Code}] UpdateElement(Layer mismatch!)");
             if (element.Version > input.Version) return UpdateResult.Failed($"[{layer.Code}-{input.Code}] UpdateElement(Version passed!)");
             ElecricalMatrix.Remove(element);
         }
@@ -46,7 +46,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             if (element.Id == Guid.Empty) element.Id = Guid.NewGuid();
             _elements.Add(element.Code, element);
             _elementsById.Add(element.Id, element);
-            _elementsByLayerId[element.Layer.Id].Add(element);
+            _elementsByLayerCode[element.Layer.Code].Add(element);
         }
         //------------------
 
@@ -76,9 +76,9 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (!_elements.TryGetValue(elementCode, out var element))
             return UpdateResult.Failed($"RemoveElement(LayerCode:{layerCode},ElementCode:{elementCode}) not exists!");
 
-        if (element.Layer.Id != layer.Id) return UpdateResult.Failed($"RemoveElement(Layer mismatch!)");
+        if (element.Layer.Code != layer.Code) return UpdateResult.Failed($"RemoveElement(Layer mismatch!)");
         if (element.Version > requestVersion) return UpdateResult.Failed($"RemoveElement(Version passed!)");
-        if (element.Activation == false) return UpdateResult.Failed($"RemoveElement(Already removed!)");
+        if (!element.Activation) return UpdateResult.Failed($"RemoveElement(Already removed!)");
 
         //layersMatrix[element.Layer.Id].Remove(element);
         element.Activation = false;
@@ -121,7 +121,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     {
         foreach (var owner in owners)
         {
-            if (!_elementsByLayerId.TryGetValue(owner.Id, out var layerElements))
+            if (!_elementsByLayerCode.TryGetValue(owner.Code, out var layerElements))
                 continue;
 
             foreach (var item in layerElements)
@@ -135,7 +135,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public IEnumerable<LayerElement> GetElements(Layer owner)
     {
-        if (!_elementsByLayerId.TryGetValue(owner.Id, out var layerElements))
+        if (!_elementsByLayerCode.TryGetValue(owner.Code, out var layerElements))
             return LayerElement.EmptyList;
 
         return layerElements;
@@ -143,7 +143,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public int GetElementsCount(Layer owner)
     {
-        if (!_elementsByLayerId.TryGetValue(owner.Id, out var layerElements))
+        if (!_elementsByLayerCode.TryGetValue(owner.Code, out var layerElements))
             return 0;
 
         return layerElements.Count;

@@ -23,6 +23,7 @@ namespace GeographyModel
 
         Dictionary<Guid, HashSet<ulong>> lookupsByElements = new Dictionary<Guid, HashSet<ulong>>();
         Dictionary<ulong, Dictionary<ulong, HashSet<Guid>>> lookups = new Dictionary<ulong, Dictionary<ulong, HashSet<Guid>>>();
+
         static ulong CreateKey1(double latitude, double longitude) => (ulong)Math.Floor(latitude * 1000) << 32 | (ulong)Math.Floor(longitude * 1000);
         static ulong CreateKey2(double latitude, double longitude) => (ulong)Math.Floor(latitude * 1000000) << 32 | (ulong)Math.Floor(longitude * 1000000);
 
@@ -89,24 +90,21 @@ namespace GeographyModel
                 if (element == null) continue;
                 if (element.Routed && justNotRoute) continue;
 
-                if (element.CoordinateFirst != null)
+                if (element.CoordinateFirst != null &&
+                    element.CoordinateFirst.Latitude == latitude &&
+                    element.CoordinateFirst.Longitude == longitude &&
+                    !result.Contains(element))
                 {
-                    if (element.CoordinateFirst.Latitude == latitude && element.CoordinateFirst.Longitude == longitude)
-                        if (result.Contains(element) == false)
-                        {
-                            result.Add(element);
-                            continue;
-                        }
+                    result.Add(element);
+                    continue;
                 }
 
-                if (element.CoordinateLast != null)
+                if (element.CoordinateLast != null &&
+                    element.CoordinateLast.Latitude == latitude &&
+                    element.CoordinateLast.Longitude == longitude &&
+                    !result.Contains(element))
                 {
-                    if (element.CoordinateLast.Latitude == latitude && element.CoordinateLast.Longitude == longitude)
-                        if (result.Contains(element) == false)
-                        {
-                            result.Add(element);
-                            continue;
-                        }
+                    result.Add(element);
                 }
             }
 
@@ -121,12 +119,14 @@ namespace GeographyModel
         public override void Add(LayerElement element)
         {
             if (elements.ContainsKey(element.Id)) return;
-            else elements.Add(element.Id, element);
+            
+            elements.Add(element.Id, element);
         }
         public override void Remove(LayerElement element)
         {
-            if (elements.ContainsKey(element.Id) == false) return;
-            else elements.Remove(element.Id);
+            if (!elements.ContainsKey(element.Id)) return;
+            
+            elements.Remove(element.Id);
         }
         public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute)
         {

@@ -29,7 +29,11 @@ namespace GeographyRouter
                 foreach (var item in OutputLines)
                 {
                     if (item.Routed) continue;
-                    if (Node.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
+                    if (!item.Connected) continue;
+
+                    var existed = Node.CrossedRoutes.Any(x => x.Elements.Contains(item));
+                    if (existed) continue;
+
                     yield return item;
                 }
             }

@@ -28,10 +28,9 @@ public partial class GeographyRepository
         var liteLayers = new List<Layer>();
         foreach (var layer in repository._layers.Values)
         {
-            if (layer.IsElectrical == false) continue;
+            if (!layer.IsElectrical) continue;
             var liteLayer = new Layer()
             {
-                Id = layer.Id,
                 Code = layer.Code,
                 Displayname = layer.Displayname,
                 GeographyType = layer.GeographyType,
@@ -63,8 +62,8 @@ public partial class GeographyRepository
 
         foreach (var layer in repository._layers.Values)
         {
-            if (layer.IsElectrical == false) continue;
-            if (!repository._elementsByLayerId.TryGetValue(layer.Id, out var layerElements)) continue;
+            if (!layer.IsElectrical) continue;
+            if (!repository._elementsByLayerCode.TryGetValue(layer.Code, out var layerElements)) continue;
 
             var counter = 0;
             foreach (var splited in SplitList(layerElements))
@@ -102,7 +101,7 @@ public partial class GeographyRepository
 
         foreach (var layer in repository._layers.Values)
         {
-            if (!repository._elementsByLayerId.TryGetValue(layer.Id, out var layerElements)) continue;
+            if (!repository._elementsByLayerCode.TryGetValue(layer.Code, out var layerElements)) continue;
 
             var counter = 0;
             foreach (var splited in SplitList(layerElements))

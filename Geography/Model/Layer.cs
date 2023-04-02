@@ -8,9 +8,6 @@ namespace GeographyModel
     [DataContract]
     public partial class Layer
     {
-        [DataMember(Order = 00)]
-        public Guid Id { get; set; }
-
         [DataMember(Order = 01)]
         public string Code { get; set; }
 

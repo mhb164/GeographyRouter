@@ -107,24 +107,24 @@ namespace GeographyRouter
                 routing.ItemsByPrecedence.Add(routingitem.Precedence, routingitem);
 
                 //------------------------
-                if (routingitem is Route)
+                if (routingitem is Route route)
                 {
-                    foreach (var item in (routingitem as Route).Branches)
+                    foreach (var item in route.Branches)
                         if (item.Precedence > routingitem.Precedence)
                             routingitem.NextPrecedences.Add(item.Precedence);
-                    foreach (var item in (routingitem as Route).CrossedNodes)
-                        if (item.Precedence > routingitem.Precedence)
-                            routingitem.NextPrecedences.Add(item.Precedence);
-                }
-                else if (routingitem is Node)
-                {
-                    foreach (var item in (routingitem as Node).CrossedRoutes)
+                    foreach (var item in route.CrossedNodes)
                         if (item.Precedence > routingitem.Precedence)
                             routingitem.NextPrecedences.Add(item.Precedence);
                 }
-                else if (routingitem is Branch)
+                else if (routingitem is Node node)
                 {
-                    foreach (var item in (routingitem as Branch).CrossedRoutes)
+                    foreach (var item in node.CrossedRoutes)
+                        if (item.Precedence > routingitem.Precedence)
+                            routingitem.NextPrecedences.Add(item.Precedence);
+                }
+                else if (routingitem is Branch branch)
+                {
+                    foreach (var item in branch.CrossedRoutes)
                         if (item.Precedence > routingitem.Precedence)
                             routingitem.NextPrecedences.Add(item.Precedence);
                 }
@@ -172,10 +172,7 @@ namespace GeographyRouter
                 if (item == element) continue;
                 if (item.Routed)
                     throw new ApplicationException($"Node already analyzed! ({node.Coordinate}, {item.Code})");
-                //if (item.Connected == false)
-                //{
-                //    return;
-                //}
+
                 assistant.Add(item, node);
                 node.Add(item);
             }
@@ -183,11 +180,6 @@ namespace GeographyRouter
 
         private static void CreateRoutingFromSource(GeoRouter assistant, Routing routing)
         {
-            //var sourceNode = new Node(routing, null, source);
-            //routing.Add(sourceNode, 0);
-            //assistant.Add(source, sourceNode);
-
-
             var HitTestResult = assistant.HitTest(routing.SourceNode.Coordinate, false);
             var IsDeadend = CheckIsDeadend(assistant, HitTestResult.Where(x => x.GeographyTypeIsPoint), routing.SourceNode, routing.Source);
             FillNodeItems(assistant, HitTestResult.Where(x => x.GeographyTypeIsPoint), routing.SourceNode, routing.Source);
@@ -198,76 +190,14 @@ namespace GeographyRouter
                 {
                     if (item.Routed) continue;
                     if (!item.Connected) continue;
-                    if (routing.SourceNode.CrossedRoutes.Where(x => x.Elements.Contains(item)).Count() > 0) continue;//existed
-                                                                                                                     //CreateRoute(new CreateRouteParameters(assistant, routing, item, node));
+
+                    var existed = routing.SourceNode.CrossedRoutes.Any(x => x.Elements.Contains(item));
+                    if (existed) continue;
+
                     CreateRouteByStack(new CreateRouteParameters(assistant, routing, item, routing.SourceNode));
                 }
             }
         }
-
-        //private static void CreateRoute(CreateRouteParameters parameters)
-        //{
-        //    while (true)
-        //    {
-        //        if (parameters.Route.Output == null)
-        //        {
-        //            foreach (var output in parameters.Route.GetOutputs())
-        //                if (parameters.Assistant.HitTest(output, false).Count > 0)
-        //                {
-        //                    parameters.Route.SetOutput(output);
-        //                    break;
-        //                }
-        //            if (parameters.Route.Output == null)
-        //                throw new ApplicationException($"Route output is null ({string.Join(",", parameters.Route.Elements.Select(x => x.Code))}, input: {parameters.Route.Input})");
-        //        }
-        //        var HitTestResult = parameters.Assistant.HitTest(parameters.Route.Output, true);
-        //        var HitTestResultPoints = HitTestResult.Where(x => x.GeographyTypeIsPoint).ToList();
-        //        var HitTestResultLines = HitTestResult.Where(x => x.GeographyTypeIsLine && x != parameters.Element).ToList();
-
-        //        if (HitTestResultPoints.Count() > 0)//Node
-        //        {
-        //            var createNodeResult = CreateNode(parameters.Assistant, parameters.Routing, parameters.Route, HitTestResultPoints.First());
-        //            parameters.Route.AddCrossPoint(createNodeResult.Node);//??
-        //            foreach (var item in createNodeResult.GetMustRouteLines())
-        //            {
-        //                CreateRoute(new CreateRouteParameters(parameters.Assistant, parameters.Routing, item, createNodeResult.Node));
-        //            }
-        //            break;
-        //        }
-        //        else if (HitTestResultLines.Count() == 0)//End
-        //        {
-        //            //bool choosed = false;
-        //            //foreach (var output in route.GetOutputs())
-        //            //    if (Assistant.HitTest(output).Where(x => x.Routed == false).Count() > 0)
-        //            //    {
-        //            //        route.SetOutput(output);
-        //            //        choosed = true;
-        //            //        break;
-        //            //    }
-        //            ////Log($"Route end ({route.Output}, {string.Join(",", HitTestResultLines.Select(x => x.Code))})");
-        //            //if(choosed== false)
-        //            return;
-        //        }
-        //        else if (HitTestResultLines.Count() > 1)//Lines
-        //        {
-        //            var newbranch = CreateBranch(parameters.Routing, parameters.Route, parameters.Route.Output);
-        //            parameters.Route.Add(newbranch);
-
-        //            foreach (var item in HitTestResultLines.ToList())
-        //            {
-        //                if (item.Routed) continue;
-        //                CreateRoute(new CreateRouteParameters(parameters.Assistant, parameters.Routing, item, newbranch));
-        //            }
-        //            break;
-        //        }
-        //        else
-        //        {
-        //            var newline = HitTestResultLines.First();
-        //            parameters.Assistant.Add(newline, parameters.Route);
-        //            parameters.Route.Add(newline);
-        //        }
-        //    }
-        //}
 
         private static void CreateRouteByStack(CreateRouteParameters root)
         {
@@ -294,7 +224,7 @@ namespace GeographyRouter
                     var HitTestResultPoints = HitTestResult.Where(x => x.GeographyTypeIsPoint).ToList();
                     var HitTestResultLines = HitTestResult.Where(x => x.GeographyTypeIsLine && x != parameters.Element).ToList();
 
-                    if (HitTestResultPoints.Count() > 0)//Node
+                    if (HitTestResultPoints.Count > 0)//Node
                     {
                         var createNodeResult = CreateNode(parameters.Assistant, parameters.Routing, parameters.Route, HitTestResultPoints.First());
                         parameters.Route.AddCrossPoint(createNodeResult.Node);//??

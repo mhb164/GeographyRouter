@@ -142,9 +142,10 @@ namespace GeographyModel
                     var x = double.Parse(coordinatesitems[0], CultureInfo.InvariantCulture);
                     var y = double.Parse(coordinatesitems[1], CultureInfo.InvariantCulture);
                     var SRID = defaultSRID;
-                    if (coordinatesitems.Length > 2)
+                    if (coordinatesitems.Length > 2 &&
+                        !uint.TryParse(coordinatesitems[2], NumberStyles.Any, CultureInfo.InvariantCulture, out SRID))
                     {
-                        if (uint.TryParse(coordinatesitems[2], NumberStyles.Any, CultureInfo.InvariantCulture, out SRID) == false) SRID = defaultSRID;
+                        SRID = defaultSRID;
                     }
 
                     EPSG.FromUTM(SRID, true, x, y, out var latitude, out var longitude, defaultSRID);

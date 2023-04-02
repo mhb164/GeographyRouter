@@ -23,7 +23,7 @@ public partial class GeographyRepository
         foreach (var item in input)
         {
             var updateResult = update(item);
-            if (updateResult.Result == false) return updateResult;
+            if (!updateResult.Result) return updateResult;
         }
         return UpdateResult.Success();
     });
@@ -46,7 +46,7 @@ public partial class GeographyRepository
             {
                 Code = inputField.Code,
                 Displayname = inputField.Displayname,
-                Index = layer.Fields.Count(),
+                Index = layer.Fields.Count,
             };
             layer.Fields.Add(field);
         }
@@ -61,15 +61,12 @@ public partial class GeographyRepository
         {
             layer = new Layer()
             {
-                Id = input.Id,
                 Code = input.Code,
                 GeographyType = input.GeographyType,
                 Fields = new List<LayerField>(),
             };
-
-            if (layer.Id == Guid.Empty) layer.Id = Guid.NewGuid();
             _layers.Add(layer.Code, layer);
-            _elementsByLayerId.Add(layer.Id, new List<LayerElement>());
+            _elementsByLayerCode.Add(layer.Code, new List<LayerElement>());
         }
 
         layer.Displayname = input.Displayname;
@@ -96,7 +93,7 @@ public partial class GeographyRepository
                     {
                         Code = inputField.Code,
                         Displayname = inputField.Displayname,
-                        Index = layer.Fields.Count(),
+                        Index = layer.Fields.Count,
                     };
                     layer.Fields.Add(field);
                 }
@@ -110,18 +107,13 @@ public partial class GeographyRepository
 
     public List<Layer> Layers => ReadByLock(() => _layers.Values.ToList());
     public Layer GetLayer(string layercode) => ReadByLock(() => getLayerWithoutLock(layercode));
-    public Layer GetLayer(Guid layerId) => ReadByLock(() => getLayerWithoutLock(layerId));
 
     Layer getLayerWithoutLock(string layercode)
     {
         if (_layers.TryGetValue(layercode, out var layer))
             return layer;
         else return null;
-    }
-    Layer getLayerWithoutLock(Guid layerId)
-    {
-        return _layers.Values.FirstOrDefault(x => x.Id == layerId);//TODO: add map and reduce
-    }
+    }   
 
     public List<Layer> GetLayers(IEnumerable<string> layerCodes) => ReadByLock(() =>
     {
@@ -139,7 +131,7 @@ public partial class GeographyRepository
     public long GetLayerElementCount(string layerCode) => ReadByLock(() =>
     {
         if (!_layers.TryGetValue(layerCode, out var layer)) return -1;
-        if (!_elementsByLayerId.TryGetValue(layer.Id, out var layerElements)) return 0;
+        if (!_elementsByLayerCode.TryGetValue(layer.Code, out var layerElements)) return 0;
         return layerElements.Count;
     });
 

@@ -18,7 +18,7 @@ public partial class GeographyRepository
         foreach (var command in commands)
         {
             var updateResult = update(command.Createlayer());
-            if (updateResult.Result == false) return updateResult;
+            if (!updateResult.Result) return updateResult;
         }
         return UpdateResult.Success();
     });
@@ -36,7 +36,7 @@ public partial class GeographyRepository
         if (isStructureLocked)
             return UpdateResult.Failed(StructureLockedErrorMessage);
 
-        var layer = getLayerWithoutLock(command.LayerId);
+        var layer = getLayerWithoutLock(command.LayerCode);
         if (layer == null)
             return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
 
@@ -59,9 +59,9 @@ public partial class GeographyRepository
 
     public UpdateResult Excecute(MakeLayerAsRoutingSourceCommand command) => WriteByLock(() =>
     {
-        var layer = getLayerWithoutLock(command.LayerId);
+        var layer = getLayerWithoutLock(command.LayerCode);
         if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+            return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
         if (layer.IsRoutingSource)
             return UpdateResult.Failed("این لایه هم اکنون به عنوان منبع مسیریابی است!");
 
@@ -70,7 +70,7 @@ public partial class GeographyRepository
 
         foreach (var item in _layers.Values)
         {
-            var isRoutingSource = item.Id == command.LayerId;
+            var isRoutingSource = item.Code == command.LayerCode;
             if (item.IsRoutingSource == isRoutingSource)
             {
                 continue;
@@ -86,16 +86,16 @@ public partial class GeographyRepository
 
     public UpdateResult Excecute(UpdateLayerCommand command) => WriteByLock(() =>
     {
-        var layer = getLayerWithoutLock(command.LayerId);
+        var layer = getLayerWithoutLock(command.LayerCode);
         if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+            return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
 
         //------------------------
         var changed = false;
         changed |= command.Displayname != layer.Displayname;
         changed |= command.DisplaynameFormat != layer.ElementDisplaynameFormat;
 
-        if (changed == false)
+        if (!changed)
             return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
         //------------------------
         if (!layer.CheckDisplaynameFormat(command.DisplaynameFormat, out var errorMessage))
@@ -111,25 +111,24 @@ public partial class GeographyRepository
 
     public UpdateResult Excecute(UpdateLayerRoutingCommand command) => WriteByLock(() =>
     {
-        var layer = getLayerWithoutLock(command.LayerId);
+        var layer = getLayerWithoutLock(command.LayerCode);
         if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+            return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
 
         //------------------------
         var changed = false;
         changed |= command.UseInRouting != layer.IsElectrical;
         changed |= command.ConnectivityStateFieldCode != layer.OperationStatusFieldCode;
         changed |= command.Disconnectable != layer.IsDisconnector;
-        changed |= !Equals(command.ConnectivityStateAbnormalValues, layer.OperationStatusAbnormalValues);        
+        changed |= !Equals(command.ConnectivityStateAbnormalValues, layer.OperationStatusAbnormalValues);
         changed |= command.NormalOpen != layer.IsNormalOpen;
 
-        if (changed == false)
+        if (!changed)
             return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
         //------------------------
-        if (layer.IsRoutingSource)
+        if (layer.IsRoutingSource && !command.UseInRouting)
         {
-            if (!command.UseInRouting)
-                return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
+            return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
         }
 
         if (!string.IsNullOrWhiteSpace(command.ConnectivityStateFieldCode))
@@ -153,16 +152,16 @@ public partial class GeographyRepository
 
     private bool Equals(List<string> a, List<string> b)
     {
-        if (a is null && b is null) 
+        if (a is null && b is null)
             return true;
 
-        if (a is null) 
+        if (a is null)
             return false;
 
-        if (b is null) 
+        if (b is null)
             return false;
 
-        if (a.Count != b.Count) 
+        if (a.Count != b.Count)
             return false;
 
         foreach (var item in a)
@@ -178,9 +177,9 @@ public partial class GeographyRepository
         if (isStructureLocked)
             return UpdateResult.Failed(StructureLockedErrorMessage);
 
-        var layer = getLayerWithoutLock(command.LayerId);
+        var layer = getLayerWithoutLock(command.LayerCode);
         if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+            return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
 
         var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
         if (existingField != null)
@@ -190,7 +189,7 @@ public partial class GeographyRepository
         {
             Code = command.Code,
             Displayname = command.Displayname,
-            Index = layer.Fields.Count(),
+            Index = layer.Fields.Count,
         });
 
         Save(layer);
@@ -199,9 +198,9 @@ public partial class GeographyRepository
 
     public UpdateResult Excecute(UpdateLayerFieldCommand command) => WriteByLock(() =>
     {
-        var layer = getLayerWithoutLock(command.LayerId);
+        var layer = getLayerWithoutLock(command.LayerCode);
         if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+            return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
 
         var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
         if (existingField == null)
@@ -211,7 +210,7 @@ public partial class GeographyRepository
         var changed = false;
         changed |= command.Displayname != existingField.Displayname;
 
-        if (changed == false)
+        if (!changed)
             return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
         //------------------------
 
@@ -226,9 +225,9 @@ public partial class GeographyRepository
         if (isStructureLocked)
             return UpdateResult.Failed(StructureLockedErrorMessage);
 
-        var layer = getLayerWithoutLock(command.LayerId);
+        var layer = getLayerWithoutLock(command.LayerCode);
         if (layer == null)
-            return UpdateResult.Failed("لایه با شناسه درخواست شده وجود ندارد!");
+            return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
 
         var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
         if (existingField == null)
