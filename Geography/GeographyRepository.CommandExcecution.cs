@@ -268,7 +268,6 @@ public partial class GeographyRepository
 
                 var element = new LayerElement()
                 {
-                    Activation = true,
                     Id = Guid.Empty,
                     Code = item.ElementCode,
                     Points = item.Points,
@@ -281,6 +280,23 @@ public partial class GeographyRepository
 
             return updateResults;
 
+        });
+
+        WaitFlush();
+        return result;
+    }
+
+    public List<UpdateResult> Excecute(DeleteElementsCommand command)
+    {
+        var result = WriteByLock(() =>
+        {
+            var updateResults = new List<UpdateResult>();
+            foreach (var elementCode in command.ElementCodes)
+            {
+                updateResults.Add(deleteElement(command.LayerCode, elementCode, command.Timetag.Ticks));
+            }
+
+            return updateResults;
         });
 
         WaitFlush();

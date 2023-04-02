@@ -34,7 +34,6 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         {
             element = new LayerElement()
             {
-                Activation = true,
                 Id = input.Id,
                 Code = input.Code,
                 Points = new double[] { },
@@ -50,41 +49,42 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
         //------------------
 
-        element.Activation = input.Activation;
         element.Points = input.Points;
         element.FieldValuesText = input.FieldValuesText;
         element.Version = input.Version;
         updateVersion(element.Version, logVersion);
 
-        if (element.Activation)
-        {
-            // layersMatrix[element.Layer.Id].Add(element);
-            if (element.Layer.IsElectrical && (element.Layer.GeographyType == LayerGeographyType.Point || element.Layer.GeographyType == LayerGeographyType.Polyline))
-                ElecricalMatrix.Add(element);
-        }
+        if (element.Layer.IsElectrical && (element.Layer.GeographyType == LayerGeographyType.Point || element.Layer.GeographyType == LayerGeographyType.Polyline))
+            ElecricalMatrix.Add(element);
 
         element.ResetDisplayname();
         Save(element);
         return UpdateResult.Success($"[{layer.Code}-{input.Code}] updated.");
     }
 
-    public UpdateResult RemoveElement(string layerCode, string elementCode, long requestVersion) => WriteByLock(() =>
+    private UpdateResult deleteElement(string layerCode, string elementCode, long requestVersion, bool logVersion = false)
     {
         if (!_layers.TryGetValue(layerCode, out var layer))
-            return UpdateResult.Failed($"RemoveElement(LayerCode:{layerCode}) not exists!");
+            return UpdateResult.Failed($"[{layerCode}-{elementCode}] DeleteElement(Layer not found!)");
 
         if (!_elements.TryGetValue(elementCode, out var element))
-            return UpdateResult.Failed($"RemoveElement(LayerCode:{layerCode},ElementCode:{elementCode}) not exists!");
+            return UpdateResult.Failed($"[{layerCode}-{elementCode}] DeleteElement(elementnot found!)");
 
-        if (element.Layer.Code != layer.Code) return UpdateResult.Failed($"RemoveElement(Layer mismatch!)");
-        if (element.Version > requestVersion) return UpdateResult.Failed($"RemoveElement(Version passed!)");
-        if (!element.Activation) return UpdateResult.Failed($"RemoveElement(Already removed!)");
+        if (element.Layer.Code != layer.Code)
+            return UpdateResult.Failed($"RemoveElement(Layer mismatch!)");
 
-        //layersMatrix[element.Layer.Id].Remove(element);
-        element.Activation = false;
-        Save(element);
+        if (element.Version > requestVersion)
+            return UpdateResult.Failed($"[{layerCode}-{elementCode}] DeleteElement(Version passed!)");
+
+        _elements.Remove(element.Code);
+        _elementsById.Remove(element.Id);
+        _elementsByLayerCode[element.Layer.Code].Remove(element);
+        ElecricalMatrix.Remove(element);
+
+        updateVersion(element.Version, logVersion);
+        Delete(element);
         return UpdateResult.Success();
-    });
+    }
 
     public LayerElement this[string code] => GetElement(code);
 

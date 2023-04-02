@@ -31,6 +31,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     private void Delete(Layer item) => Storage?.Delete(item);
     private void DeleteAllLayers() => Storage?.DeleteAllLayers();
     private void Save(LayerElement item) => Storage?.Save(item);
+    private void Delete(LayerElement item) => Storage?.Delete(item);
     private void WaitFlush() => Storage?.WaitFlush();
 
     public void BeginInitial()

@@ -77,7 +77,6 @@ public partial class GeographyRepository
                     var liteLayerElement = new LayerElement()
                     {
                         Id = item.Id,
-                        Activation = item.Activation,
                         Code = item.Code,
                         Version = item.Version,
                         Points = item.Points,

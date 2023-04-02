@@ -153,7 +153,6 @@ public partial class GeographyRepository
         }
     }
 
-
     public class CreateLayerFieldCommand
     {
         public readonly string LayerCode;
@@ -241,6 +240,28 @@ public partial class GeographyRepository
         }
 
         public override string ToString() => $"{ElementCode}-{string.Join(", ", Points)}-{string.Join(", ", DescriptorValues)}";
+    }
+
+    public class DeleteElementsCommand
+    {
+        public readonly string LayerCode;
+        public readonly List<string> ElementCodes;
+        public readonly DateTime Timetag;
+
+        public DeleteElementsCommand(string layerCode, List<string> elementCodes, DateTime timetag)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) 
+                throw new ArgumentException("کُد لایه خالی وارد شده است!");
+
+            if (elementCodes.Select(x => string.IsNullOrWhiteSpace(x)).Any()) 
+                throw new ArgumentException("کُد خالی وارد شده است!");
+
+            LayerCode = layerCode.ToUpperInvariant().Trim();
+            ElementCodes = elementCodes.Select(x => x.ToUpperInvariant()).ToList();
+            Timetag = timetag;
+        }
+
+        public override string ToString() => $"{string.Join(", ", ElementCodes)}";
     }
 
 }

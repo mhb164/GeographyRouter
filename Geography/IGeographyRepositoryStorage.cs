@@ -6,6 +6,7 @@ public interface IGeographyRepositoryStorage
     bool Delete(Layer item);
     bool DeleteAllLayers();
     bool Save(LayerElement item);
+    bool Delete(LayerElement item);
 
     void WaitFlush();
 }
