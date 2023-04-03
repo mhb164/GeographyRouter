@@ -247,46 +247,37 @@ public partial class GeographyRepository
     {
         var result = WriteByLock(() =>
         {
-            try
+            var layer = getLayerWithoutLock(command.LayerCode);
+            if (layer == null)
+                return new List<UpdateResult>() { UpdateResult.Failed("لایه با کد درخواست شده وجود ندارد!") };
+
+            var updateResults = new List<UpdateResult>();
+            foreach (var item in command.Items)
             {
-                var layer = getLayerWithoutLock(command.LayerCode);
-                if (layer == null)
-                    return new List<UpdateResult>() { UpdateResult.Failed("لایه با کد درخواست شده وجود ندارد!") };
-
-                var updateResults = new List<UpdateResult>();
-                foreach (var item in command.Items)
+                var elementFieldValues = new List<string>();
+                foreach (var layerField in layer.Fields.OrderBy(x => x.Index))
                 {
-                    var elementFieldValues = new List<string>();
-                    foreach (var layerField in layer.Fields.OrderBy(x => x.Index))
+                    if (command.Descriptors.Contains(layerField.Code))
                     {
-                        if (command.Descriptors.Contains(layerField.Code))
-                        {
-                            var index = Array.IndexOf(command.Descriptors, layerField.Code);
-                            elementFieldValues.Add(item.DescriptorValues[index]);
-                        }
-                        else
-                            elementFieldValues.Add(string.Empty);
+                        var index = Array.IndexOf(command.Descriptors, layerField.Code);
+                        elementFieldValues.Add(item.DescriptorValues[index]);
                     }
-
-                    var element = new LayerElement()
-                    {
-                        Code = item.ElementCode,
-                        Points = item.Points,
-                        FieldValuesText = LayerElement.TranslateFieldValues(elementFieldValues),
-                        Version = item.Timetag.Ticks,
-                    };
-
-                    updateResults.Add(update(layer, element));
+                    else
+                        elementFieldValues.Add(string.Empty);
                 }
 
-                return updateResults;
-            }
-            catch (Exception ex)
-            {
-                return new List<UpdateResult>() { UpdateResult.Failed($"{ex.Message}\r\n{ex.StackTrace}") };
+                var element = new LayerElement()
+                {
+                    Code = item.ElementCode,
+                    Points = item.Points,
+                    FieldValuesText = LayerElement.TranslateFieldValues(elementFieldValues),
+                    Version = item.Timetag.Ticks,
+                };
 
+                updateResults.Add(update(layer, element));
             }
 
+            return updateResults;
         });
 
         WaitFlush();
