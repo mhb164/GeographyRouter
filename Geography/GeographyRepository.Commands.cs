@@ -253,7 +253,7 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(layerCode)) 
                 throw new ArgumentException("کُد لایه خالی وارد شده است!");
 
-            if (elementCodes.Select(x => string.IsNullOrWhiteSpace(x)).Any()) 
+            if (!elementCodes.Select(x => string.IsNullOrWhiteSpace(x)).Any()) 
                 throw new ArgumentException("کُد خالی وارد شده است!");
 
             LayerCode = layerCode.ToUpperInvariant().Trim();
