@@ -42,7 +42,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             element.Reset(layer);
 
             _elements.Add(element.Code, element);
-            _elementsByLayerCode[element.Layer.Code].Add(element);
+            _elementsByLayerCode[element.Layer.Code].Add(element.Code, element);
         }
         //------------------
 
@@ -74,7 +74,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             return UpdateResult.Failed($"[{layerCode}-{elementCode}] DeleteElement(Version passed!)");
 
         _elements.Remove(element.Code);
-        _elementsByLayerCode[element.Layer.Code].Remove(element);
+        _elementsByLayerCode[element.Layer.Code].Remove(element.Code);
         ElecricalMatrix.Remove(element);
 
         updateVersion(element.Version, logVersion);
@@ -109,8 +109,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     {
         foreach (var owner in owners)
         {
-            if (!_elementsByLayerCode.TryGetValue(owner.Code, out var layerElements))
-                continue;
+            var layerElements = getLayerElements(owner.Code);
 
             foreach (var item in layerElements)
             {
@@ -120,21 +119,4 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
 
     }
-
-    public IEnumerable<LayerElement> GetElements(Layer owner)
-    {
-        if (!_elementsByLayerCode.TryGetValue(owner.Code, out var layerElements))
-            return LayerElement.EmptyList;
-
-        return layerElements;
-    }
-
-    public int GetElementsCount(Layer owner)
-    {
-        if (!_elementsByLayerCode.TryGetValue(owner.Code, out var layerElements))
-            return 0;
-
-        return layerElements.Count;
-    }
-
 }

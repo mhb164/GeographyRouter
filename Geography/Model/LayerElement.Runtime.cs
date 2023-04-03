@@ -10,7 +10,7 @@ namespace GeographyModel
 {
     public partial class LayerElement
     {
-        public readonly static IEnumerable<LayerElement> EmptyList = new List<LayerElement>();
+        public readonly static List<LayerElement> EmptyList = new List<LayerElement>();
         public void Reset(Layer layer)
         {
             Layer = layer;

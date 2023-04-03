@@ -66,7 +66,7 @@ public partial class GeographyRepository
                 Fields = new List<LayerField>(),
             };
             _layers.Add(layer.Code, layer);
-            _elementsByLayerCode.Add(layer.Code, new List<LayerElement>());
+            _elementsByLayerCode.Add(layer.Code, new Dictionary<string, LayerElement>());
         }
 
         layer.Displayname = input.Displayname;
@@ -113,7 +113,7 @@ public partial class GeographyRepository
         if (_layers.TryGetValue(layercode, out var layer))
             return layer;
         else return null;
-    }   
+    }
 
     public List<Layer> GetLayers(IEnumerable<string> layerCodes) => ReadByLock(() =>
     {
@@ -128,11 +128,31 @@ public partial class GeographyRepository
     public List<string> LayersCodes => ReadByLock(() => _layers.Keys.ToList());
     public List<string> DisconnectorLayersCodes => ReadByLock(() => _layers.Where(x => x.Value.IsDisconnector).Select(x => x.Key).ToList());
 
-    public long GetLayerElementCount(string layerCode) => ReadByLock(() =>
+    public long GetLayerElementCount(string layerCode) => ReadByLock(() => getLayerElementCount(layerCode));
+    public long GetElementsCount(Layer layer) => ReadByLock(() => getLayerElementCount(layer.Code));
+    public long getLayerElementCount(string layerCode)
     {
         if (!_layers.TryGetValue(layerCode, out var layer)) return -1;
         if (!_elementsByLayerCode.TryGetValue(layer.Code, out var layerElements)) return 0;
         return layerElements.Count;
-    });
+    }
 
+    public IEnumerable<LayerElement> GetLayerElements(string layerCode) => ReadByLock(() => getLayerElements(layerCode));
+    public IEnumerable<LayerElement> GetElements(Layer layer) => ReadByLock(() => getLayerElements(layer.Code));
+    public List<LayerElement> getLayerElements(string layerCode)
+    {
+        if (!_elementsByLayerCode.TryGetValue(layerCode, out var layerElements))
+            return LayerElement.EmptyList;
+
+        return layerElements.Values.ToList();
+    }
+
+    public List<string> GetLayerElementCodes(string layerCode) => ReadByLock(() => getLayerElementCodes(layerCode));
+    public List<string> getLayerElementCodes(string layerCode)
+    {
+        if (!_elementsByLayerCode.TryGetValue(layerCode, out var layerElements))
+            return new List<string>();
+
+        return layerElements.Keys.ToList();
+    }
 }

@@ -63,7 +63,8 @@ public partial class GeographyRepository
         foreach (var layer in repository._layers.Values)
         {
             if (!layer.IsElectrical) continue;
-            if (!repository._elementsByLayerCode.TryGetValue(layer.Code, out var layerElements)) continue;
+            var layerElements = repository.getLayerElements(layer.Code);
+            if(!layerElements.Any()) continue;
 
             var counter = 0;
             foreach (var splited in SplitList(layerElements))
@@ -99,7 +100,8 @@ public partial class GeographyRepository
 
         foreach (var layer in repository._layers.Values)
         {
-            if (!repository._elementsByLayerCode.TryGetValue(layer.Code, out var layerElements)) continue;
+            var layerElements = repository.getLayerElements(layer.Code);
+            if(!layerElements.Any()) continue;
 
             var counter = 0;
             foreach (var splited in SplitList(layerElements))

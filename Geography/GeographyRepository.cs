@@ -19,7 +19,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     Dictionary<string, Layer> _layers = new Dictionary<string, Layer>();
     Dictionary<string, LayerElement> _elements = new Dictionary<string, LayerElement>();
-    Dictionary<string, List<LayerElement>> _elementsByLayerCode = new Dictionary<string, List<LayerElement>>();
+    Dictionary<string, Dictionary<string, LayerElement>> _elementsByLayerCode = new Dictionary<string, Dictionary<string, LayerElement>>();
     LayerElementsMatrix ElecricalMatrix;
 
 

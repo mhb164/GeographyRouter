@@ -19,17 +19,14 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     });
 
     public List<GeographyRouter.ILayerElement> GetRoutingSources() => ReadByLock(() =>
-    {        
+    {
         var layer = _layers.Values.FirstOrDefault(x => x.IsRoutingSource);
 
-        if (layer == null || !_elementsByLayerCode.TryGetValue(layer.Code, out var layerElements))
-        {
+        if (layer == null)
             return new List<GeographyRouter.ILayerElement>();
-        }
-        else
-        {
-            return layerElements.ToList<GeographyRouter.ILayerElement>();
-        }
+
+        return getLayerElements(layer.Code).ToList<GeographyRouter.ILayerElement>();
+
     });
 
     public void RoutingHitTest(double latitude, double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute) /*=> Lock.PerformRead(() =>*/
@@ -47,7 +44,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         {
             if (!element.Layer.IsElectrical) continue;
             if (element.Routed) continue;
-            
+
             result.Add(element.Code);
         }
         return result;
