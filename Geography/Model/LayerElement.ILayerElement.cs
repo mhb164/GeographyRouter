@@ -12,30 +12,14 @@ namespace GeographyModel
         public override string ToString() => Displayname;
 
         public static Func<string, bool?> GetConnectivityFunc;
-        static bool? GetConnectivity(string code) => GetConnectivityFunc?.Invoke(code);
-
         [IgnoreDataMember, JsonIgnore]
         public bool Connected
         {
             get
             {
-                var connectivity = GetConnectivity(Code);
+                var connectivity = GetConnectivityFunc?.Invoke(Code);
                 if (connectivity.HasValue) return connectivity.Value;
-                //-------------
-                if (Layer == null) return false;
-                if (!Layer.IsElectrical) return false;
-                //-------------
-                var normalValue = !Layer.IsNormalOpen;// Close: connected, Open: disconnectd
-                if (Layer.OperationStatusField == null) return normalValue;
-                if (Layer.OperationStatusAbnormalValues.Count == 0) return normalValue;
-                //-------------
-                var fieldValue = Layer.OperationStatusField.GetValue(FieldValues).Trim();
-                foreach (var item in Layer.OperationStatusAbnormalValues)
-                {
-                    if (fieldValue == item)
-                        return !normalValue;
-                }
-                return normalValue;
+                else return true;
             }
         }
 

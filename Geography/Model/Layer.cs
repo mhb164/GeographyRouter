@@ -31,14 +31,5 @@ namespace GeographyModel
 
         [DataMember(Order = 06)]
         public bool IsDisconnector { get; set; }
-
-        [DataMember(Order = 07)]
-        public string OperationStatusFieldCode { get; set; }
-
-        [DataMember(Order = 08)]
-        public List<string> OperationStatusAbnormalValues { get; set; }
-
-        [DataMember(Order = 09)]
-        public bool IsNormalOpen { get; set; }
     }
 }

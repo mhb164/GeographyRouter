@@ -11,21 +11,7 @@ namespace GeographyModel
 {
     public partial class Layer
     {
-        [IgnoreDataMember, JsonIgnore]
-        public LayerField OperationStatusField { get; private set; }
-
         public override string ToString() => $"[{Code}] {Displayname}";
-
-        public void Reset()
-        {
-            foreach (var item in Fields)
-            {
-                item.Reset();
-            }
-            OperationStatusField = null;
-            if (IsElectrical && !string.IsNullOrWhiteSpace(OperationStatusFieldCode))
-                OperationStatusField = Fields.FirstOrDefault(x => x.Code == OperationStatusFieldCode);
-        }
 
         public bool CheckDisplaynameFormat(string input, out string errorMessage)
         {

@@ -35,27 +35,12 @@ public partial class GeographyRepository
                 Displayname = layer.Displayname,
                 GeographyType = layer.GeographyType,
                 Fields = new List<LayerField>(),
-                ElementDisplaynameFormat = "{LAYERNAME} ({CODE})",
+                ElementDisplaynameFormat = layer.IsElectrical ? "{LAYERNAME} ({CONNECTED}, {CODE})" : "{LAYERNAME} ({CODE})",
                 IsRoutingSource = layer.IsRoutingSource,
                 IsElectrical = layer.IsElectrical,
                 IsDisconnector = layer.IsDisconnector,
-                OperationStatusFieldCode = "",
-                OperationStatusAbnormalValues = new List<string>(),
-                IsNormalOpen = layer.IsNormalOpen
             };
 
-            if (layer.OperationStatusField != null)
-            {
-                liteLayer.ElementDisplaynameFormat = "{LAYERNAME} ({CONNECTED}, {CODE})";
-                liteLayer.Fields.Add(new LayerField()
-                {
-                    Index = 0,
-                    Code = layer.OperationStatusField.Code,
-                    Displayname = layer.OperationStatusField.Displayname,
-                });
-                liteLayer.OperationStatusFieldCode = layer.OperationStatusFieldCode;
-                liteLayer.OperationStatusAbnormalValues = layer.OperationStatusAbnormalValues;
-            }
             liteLayers.Add(liteLayer);
         }
         File.WriteAllText(layersFilename, JsonSerializer.Serialize(liteLayers));
@@ -64,7 +49,7 @@ public partial class GeographyRepository
         {
             if (!layer.IsElectrical) continue;
             var layerElements = repository.getLayerElements(layer.Code);
-            if(!layerElements.Any()) continue;
+            if (!layerElements.Any()) continue;
 
             var counter = 0;
             foreach (var splited in SplitList(layerElements))
@@ -80,7 +65,7 @@ public partial class GeographyRepository
                         Code = item.Code,
                         Version = item.Version,
                         Points = item.Points,
-                        FieldValuesText = layer.OperationStatusField is null ? "" : layer.OperationStatusField.GetValue(item.FieldValues),
+                        FieldValuesText = "",
                     };
 
                     liteLayerElements.Add(liteLayerElement);
@@ -101,7 +86,7 @@ public partial class GeographyRepository
         foreach (var layer in repository._layers.Values)
         {
             var layerElements = repository.getLayerElements(layer.Code);
-            if(!layerElements.Any()) continue;
+            if (!layerElements.Any()) continue;
 
             var counter = 0;
             foreach (var splited in SplitList(layerElements))

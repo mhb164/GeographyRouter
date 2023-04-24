@@ -38,14 +38,11 @@ public partial class GeographyRepository
                 Code = Code.Trim().ToUpperInvariant(),
                 GeographyType = GeographyType,
                 Displayname = Displayname.Trim(),
+                ElementDisplaynameFormat = "{LAYERNAME} ({CODE})",
+                Fields = new List<LayerField>(),
                 IsRoutingSource = false,
                 IsElectrical = false,
                 IsDisconnector = false,
-                OperationStatusFieldCode = "",
-                OperationStatusAbnormalValues = new List<string>(),
-                IsNormalOpen = false,
-                ElementDisplaynameFormat = "{LAYERNAME} ({CODE})",
-                Fields = new List<LayerField>(),
             };
 
             var index = 0;
@@ -76,6 +73,31 @@ public partial class GeographyRepository
             Displayname = displayname.Trim();
         }
     }
+    public class UpdateLayerCommand
+    {
+        public readonly string LayerCode;
+        public readonly string Displayname;
+        public readonly string DisplaynameFormat;//ElementDisplaynameFormat
+        public readonly bool UseInRouting;//IsElectrical
+        public readonly bool Disconnectable;//IsDisconnector
+
+        public UpdateLayerCommand(string layerCode, 
+                                  string displayname, 
+                                  string displaynameFormat,
+                                  bool useInRouting,
+                                  bool disconnectable)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(displaynameFormat)) throw new ArgumentException("قالب نمایش خالی وارد شده است!");
+
+            LayerCode = layerCode.ToUpperInvariant().Trim();
+            Displayname = displayname.Trim();
+            DisplaynameFormat = displaynameFormat.Trim();
+            UseInRouting = useInRouting;
+            Disconnectable = disconnectable;
+        }
+    }
 
     public class MakeLayerAsRoutingSourceCommand
     {
@@ -86,51 +108,6 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
 
             LayerCode = layerCode.ToUpperInvariant().Trim();
-        }
-    }
-
-    public class UpdateLayerCommand
-    {
-        public readonly string LayerCode;
-        public readonly string Displayname;
-        public readonly string DisplaynameFormat;//ElementDisplaynameFormat
-
-        public UpdateLayerCommand(string layerCode, string displayname, string displaynameFormat)
-        {
-            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
-            if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
-            if (string.IsNullOrWhiteSpace(displaynameFormat)) throw new ArgumentException("قالب نمایش خالی وارد شده است!");
-
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            Displayname = displayname.Trim();
-            DisplaynameFormat = displaynameFormat.Trim();
-        }
-    }
-
-    public class UpdateLayerRoutingCommand
-    {
-        public readonly string LayerCode;
-        public readonly bool UseInRouting;//IsElectrical
-        public readonly string ConnectivityStateFieldCode;//OperationStatusFieldCode
-        public readonly List<string> ConnectivityStateAbnormalValues;//OperationStatusAbnormalValues
-        public readonly bool Disconnectable;//IsDisconnector
-        public readonly bool NormalOpen;//IsNormalOpen
-
-        public UpdateLayerRoutingCommand(string layerCode,
-                                         bool useInRouting,
-                                         string connectivityStateFieldCode,
-                                         List<string> connectivityStateAbnormalValues,
-                                         bool disconnectable,
-                                         bool normalOpen)
-        {
-            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
-
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            UseInRouting = useInRouting;
-            ConnectivityStateFieldCode = connectivityStateFieldCode.ToUpperInvariant().Trim();
-            ConnectivityStateAbnormalValues = connectivityStateAbnormalValues.Select(x => x.Trim()).ToList();
-            Disconnectable = disconnectable;
-            NormalOpen = normalOpen;
         }
     }
 

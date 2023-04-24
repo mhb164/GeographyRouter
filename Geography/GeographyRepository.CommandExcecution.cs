@@ -94,6 +94,8 @@ public partial class GeographyRepository
         var changed = false;
         changed |= command.Displayname != layer.Displayname;
         changed |= command.DisplaynameFormat != layer.ElementDisplaynameFormat;
+        changed |= command.UseInRouting != layer.IsElectrical;
+        changed |= command.Disconnectable != layer.IsDisconnector;
 
         if (!changed)
             return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
@@ -103,75 +105,14 @@ public partial class GeographyRepository
         //------------------------
         layer.Displayname = command.Displayname;
         layer.ElementDisplaynameFormat = command.DisplaynameFormat;
-
-        Save(layer);
-
-        return update(layer);
-    });
-
-    public UpdateResult Excecute(UpdateLayerRoutingCommand command) => WriteByLock(() =>
-    {
-        var layer = getLayerWithoutLock(command.LayerCode);
-        if (layer == null)
-            return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
-
-        //------------------------
-        var changed = false;
-        changed |= command.UseInRouting != layer.IsElectrical;
-        changed |= command.ConnectivityStateFieldCode != layer.OperationStatusFieldCode;
-        changed |= command.Disconnectable != layer.IsDisconnector;
-        changed |= !Equals(command.ConnectivityStateAbnormalValues, layer.OperationStatusAbnormalValues);
-        changed |= command.NormalOpen != layer.IsNormalOpen;
-
-        if (!changed)
-            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
-        //------------------------
-        if (layer.IsRoutingSource && !command.UseInRouting)
-        {
-            return UpdateResult.Failed("لایه منبع مسیر یابی باید در مسیریابی فعال باشد!");
-        }
-
-        if (!string.IsNullOrWhiteSpace(command.ConnectivityStateFieldCode))
-        {
-            var connectivityStateField = layer.Fields.FirstOrDefault(x => x.Code == command.ConnectivityStateFieldCode);
-            if (connectivityStateField == null)
-                return UpdateResult.Failed($"فیلدی با کُدِ {command.ConnectivityStateFieldCode} پیدا نشد!");
-        }
-
-        //------------------------
         layer.IsElectrical = command.UseInRouting;
-        layer.OperationStatusFieldCode = command.ConnectivityStateFieldCode;
         layer.IsDisconnector = command.Disconnectable;
-        layer.OperationStatusAbnormalValues = command.ConnectivityStateAbnormalValues;
-        layer.IsNormalOpen = command.NormalOpen;
 
         Save(layer);
 
         return update(layer);
     });
-
-    private bool Equals(List<string> a, List<string> b)
-    {
-        if (a is null && b is null)
-            return true;
-
-        if (a is null)
-            return false;
-
-        if (b is null)
-            return false;
-
-        if (a.Count != b.Count)
-            return false;
-
-        foreach (var item in a)
-        {
-            if (!b.Contains(item))
-                return false;
-        }
-        return true;
-    }
-
+  
     public UpdateResult Excecute(CreateLayerFieldCommand command) => WriteByLock(() =>
     {
         if (isStructureLocked)
@@ -232,9 +173,6 @@ public partial class GeographyRepository
         var existingField = layer.Fields.FirstOrDefault(x => x.Code == command.Code);
         if (existingField == null)
             return UpdateResult.Failed($"فیلد با کُدِ {command.Code} پیدا نشد!");
-
-        if (layer.OperationStatusFieldCode == existingField.Code)
-            return UpdateResult.Failed($"امکان حذف فیلد تشخیص وضعیت نیست!");
 
         layer.Fields.Remove(existingField);
         layer.ReIndexFields();

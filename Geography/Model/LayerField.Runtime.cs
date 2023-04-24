@@ -11,11 +11,6 @@ namespace GeographyModel
     {
         public override string ToString() => $"[{Code}] {Displayname}";
 
-        public void Reset()
-        {
-
-        }
-
         public string GetValue(string[] elementFieldValues)
         {
             var result = string.Empty;
