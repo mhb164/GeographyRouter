@@ -16,7 +16,7 @@ public partial class GeographyRepository
     {
         foreach (var item in layers)
         {
-            if (!_layers.TryGetValue(item.Code, out var layer))
+            if (_layers.TryGetValue(item.Code, out var layer))
                 continue;
 
             _layers.Add(item.Code, item);
