@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     Dictionary<string, Dictionary<string, LayerElement>> _elementsByLayerCode = new Dictionary<string, Dictionary<string, LayerElement>>();
     LayerElementsMatrix ElecricalMatrix;
 
+    public event Action RoutingChangeDetected;
+    protected void FireRoutingChangeDetected() => RoutingChangeDetected?.Invoke();
 
     protected void Log(string message) => LogAction?.Invoke(message);
 

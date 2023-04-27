@@ -4,12 +4,64 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
+
+namespace Geography.IO
+{
+    public enum GeographyType
+    {
+        Point = 1,
+        Polyline = 2,
+        Polygon = 3,
+    }
+
+    [DataContract]
+    public class Layer
+    {
+        [DataMember(Order = 01)]
+        public string Code { get; set; }
+
+        [DataMember(Order = 02)]
+        public string Displayname { get; set; }
+
+        [DataMember(Order = 03)]
+        public GeographyType GeographyType { get; set; }
+
+        [DataMember(Order = 04)]
+        public List<Field> Fields { get; set; }
+
+        [DataMember(Order = 05)]
+        public string ElementDisplaynameFormat { get; set; }
+
+        [DataMember(Order = 06)]
+        public bool IsRoutingSource { get; set; }
+
+        [DataMember(Order = 07)]
+        public bool IsElectrical { get; set; }
+
+        [DataMember(Order = 08)]
+        public bool IsDisconnector { get; set; }
+    }
+
+    [DataContract]
+    public class Field
+    {
+        [DataMember(Order = 01)]
+        public int Index { get; set; }
+        [DataMember(Order = 02)]
+        public string Code { get; set; }
+        [DataMember(Order = 03)]
+        public string Displayname { get; set; }
+    }
+
+}
 
 public partial class GeographyRepository
 {
@@ -25,16 +77,16 @@ public partial class GeographyRepository
         Directory.CreateDirectory(root);
 
         var layersFilename = Path.Combine(root, "Layers.json");
-        var liteLayers = new List<Layer>();
+        var liteLayers = new List<Geography.IO.Layer>();
         foreach (var layer in repository._layers.Values)
         {
             if (!layer.IsElectrical) continue;
-            var liteLayer = new Layer()
+            var liteLayer = new Geography.IO.Layer()
             {
                 Code = layer.Code,
                 Displayname = layer.Displayname,
-                GeographyType = layer.GeographyType,
-                Fields = new List<LayerField>(),
+                GeographyType = (Geography.IO.GeographyType)(int)layer.GeographyType,
+                Fields = new List<Geography.IO.Field>(),
                 ElementDisplaynameFormat = layer.IsElectrical ? "{LAYERNAME} ({CONNECTED}, {CODE})" : "{LAYERNAME} ({CODE})",
                 IsRoutingSource = layer.IsRoutingSource,
                 IsElectrical = layer.IsElectrical,

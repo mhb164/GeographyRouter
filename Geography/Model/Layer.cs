@@ -1,35 +1,156 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
-
+using System.Text.RegularExpressions;
 
 namespace GeographyModel
 {
-    [DataContract]
     public partial class Layer
     {
-        [DataMember(Order = 01)]
-        public string Code { get; set; }
+        public readonly string Code;
+        public readonly LayerGeographyType GeographyType;
+        private readonly Dictionary<string, LayerField> fields;
+        private readonly Dictionary<int, LayerField> fieldsbyIndex;
 
-        [DataMember(Order = 02)]
-        public string Displayname { get; set; }
+        public Layer(string code,
+                     string displayname,
+                     LayerGeographyType geographyType)
+        {
+            Code = code;
+            Displayname = displayname;
+            GeographyType = geographyType;
 
-        [DataMember(Order = 03)]
-        public LayerGeographyType GeographyType { get; set; }
+            fields = new Dictionary<string, LayerField>();
+            fieldsbyIndex = new Dictionary<int, LayerField>();
 
-        [DataMember(Order = 04)]
-        public List<LayerField> Fields { get; set; }
+            ElementDisplaynameFormat = "{LAYERNAME} ({CODE})";
+            IsRoutingSource = false;
+            IsElectrical = false;
+            IsDisconnector = false;
+        }
 
-        [DataMember(Order = 05)]
-        public string ElementDisplaynameFormat { get; set; }
+        public Layer(string code,
+                     string displayname,
+                     LayerGeographyType geographyType,
+                     string elementDisplaynameFormat,
+                     bool isRoutingSource,
+                     bool isElectrical,
+                     bool isDisconnector)
+        {
+            Code = code;
+            fields = new Dictionary<string, LayerField>();
+            fieldsbyIndex = new Dictionary<int, LayerField>();
 
-        [DataMember(Order = 05)]
-        public bool IsRoutingSource { get; set; }
+            Displayname = displayname;
+            GeographyType = geographyType;
+            ElementDisplaynameFormat = elementDisplaynameFormat;
+            IsRoutingSource = isRoutingSource;
+            IsElectrical = isElectrical;
+            IsDisconnector = isDisconnector;
+        }
 
-        [DataMember(Order = 05)]
-        public bool IsElectrical { get; set; }
+        public string Displayname { get; private set; }
 
-        [DataMember(Order = 06)]
-        public bool IsDisconnector { get; set; }
+
+        public IEnumerable<LayerField> Fields => fields.Values;
+
+        public string ElementDisplaynameFormat { get; private set; }
+
+        public bool IsRoutingSource { get; private set; }
+
+        public bool IsElectrical { get; private set; }
+
+        public bool IsDisconnector { get; private set; }
+
+        public override string ToString() => $"[{Code}] {Displayname}";
+
+        public void UpdateIsRoutingSource(bool isRoutingSource)
+        {
+            IsRoutingSource = isRoutingSource;
+        }
+
+        public void Update(string displayname,
+            string elementDisplaynameFormat,
+            bool isElectrical,
+            bool isDisconnector)
+        {
+            Displayname = displayname;
+            ElementDisplaynameFormat = elementDisplaynameFormat;
+            IsElectrical = isElectrical;
+            IsDisconnector = isDisconnector;
+        }
+
+        public bool CheckDisplaynameFormat(string input, out string errorMessage)
+        {
+            var fieldCodes = Regex.Matches(input, @"\{(.+?)\}").Cast<Match>().Select(m => m.Groups[1].Value.ToUpperInvariant());
+            foreach (var fieldCode in fieldCodes)
+            {
+                if (fieldCode == "LAYERNAME") continue;
+                if (fieldCode == "CODE") continue;
+                if (fieldCode == "CONNECTED") continue;
+                if (fieldCode == "CONNECTED-PERSIAN") continue;
+
+                var field = Fields.FirstOrDefault(x => x.Code == fieldCode);
+                if (field == null)
+                {
+                    errorMessage = $"{fieldCode} not found!";
+                    return false;
+                }
+            }
+
+            errorMessage = "";
+            return true;
+
+        }
+
+        public void AddFiled(string fieldCode, string fieldDisplayname)
+        {
+            var index = 0;
+            if (fields.Count > 0)
+                index = fields.Values.Max(x => x.Index);
+
+            var field = new LayerField(this, index, fieldCode, fieldDisplayname);
+
+            fields.Add(field.Code, field);
+            fieldsbyIndex.Add(field.Index, field);
+        }
+
+        public void RemoveFiled(string fieldCode)
+        {
+            if (!fields.TryGetValue(fieldCode, out var layerField))
+                throw new ArgumentException($"فیلد با کُدِ {fieldCode} پیدا نشد!");
+
+            fields.Remove(layerField.Code);
+            fieldsbyIndex.Remove(layerField.Index);
+
+            ReIndexFields();
+        }
+
+        private void ReIndexFields()
+        {
+            var ordered = Fields.OrderBy(x => x.Index).ToList();
+            fields.Clear();
+            fieldsbyIndex.Clear();
+
+            foreach (var item in ordered)
+                AddFiled(item.Code, item.Displayname);
+        }
+
+        public LayerField GetField(string fieldCode)
+        {
+            if (fields.TryGetValue(fieldCode, out var layerField))
+                return layerField;
+
+            return null;
+        }
+
+        public LayerField GetField(int fieldIndex)
+        {
+            if (fieldsbyIndex.TryGetValue(fieldIndex, out var layerField))
+                return layerField;
+
+            return null;
+        }
     }
 }

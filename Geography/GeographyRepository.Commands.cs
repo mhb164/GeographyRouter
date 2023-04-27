@@ -33,100 +33,19 @@ public partial class GeographyRepository
 
         internal Layer Createlayer()
         {
-            var layer = new Layer()
-            {
-                Code = Code.Trim().ToUpperInvariant(),
-                GeographyType = GeographyType,
-                Displayname = Displayname.Trim(),
-                ElementDisplaynameFormat = "{LAYERNAME} ({CODE})",
-                Fields = new List<LayerField>(),
-                IsRoutingSource = false,
-                IsElectrical = false,
-                IsDisconnector = false,
-            };
+            var layer = new Layer(Code,
+                Displayname,
+                GeographyType,
+                elementDisplaynameFormat: "{LAYERNAME} ({CODE})",
+                isRoutingSource: false,
+                isElectrical: false,
+                isDisconnector: false);
 
-            var index = 0;
             foreach (var field in Fields)
             {
-                layer.Fields.Add(new LayerField()
-                {
-                    Index = index,
-                    Code = field.Code.ToUpperInvariant().Trim(),
-                    Displayname = field.Displayname,
-                });
-                index++;
+                layer.AddFiled(field.Code, field.Displayname);
             }
             return layer;
-        }
-    }
-    public class CreateLayerCommandFiled
-    {
-        public readonly string Code;
-        public readonly string Displayname;
-
-        public CreateLayerCommandFiled(string code, string displayname)
-        {
-            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
-            if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
-
-            Code = code.ToUpperInvariant().Trim();
-            Displayname = displayname.Trim();
-        }
-    }
-    public class UpdateLayerCommand
-    {
-        public readonly string LayerCode;
-        public readonly string Displayname;
-        public readonly string DisplaynameFormat;//ElementDisplaynameFormat
-        public readonly bool UseInRouting;//IsElectrical
-        public readonly bool Disconnectable;//IsDisconnector
-
-        public UpdateLayerCommand(string layerCode, 
-                                  string displayname, 
-                                  string displaynameFormat,
-                                  bool useInRouting,
-                                  bool disconnectable)
-        {
-            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
-            if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
-            if (string.IsNullOrWhiteSpace(displaynameFormat)) throw new ArgumentException("قالب نمایش خالی وارد شده است!");
-
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            Displayname = displayname.Trim();
-            DisplaynameFormat = displaynameFormat.Trim();
-            UseInRouting = useInRouting;
-            Disconnectable = disconnectable;
-        }
-    }
-
-    public class MakeLayerAsRoutingSourceCommand
-    {
-        public readonly string LayerCode;
-
-        public MakeLayerAsRoutingSourceCommand(string layerCode)
-        {
-            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
-
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-        }
-    }
-
-    public class DeleteLayerCommand
-    {
-        public readonly string LayerCode;
-
-        public DeleteLayerCommand(string layerCode)
-        {
-            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
-
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-        }
-    }
-
-    public class DeleteAllLayersCommand
-    {
-        public DeleteAllLayersCommand()
-        {
         }
     }
 
@@ -165,6 +84,79 @@ public partial class GeographyRepository
             Displayname = displayname.Trim();
         }
     }
+
+    public class DeleteLayerCommand
+    {
+        public readonly string LayerCode;
+
+        public DeleteLayerCommand(string layerCode)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
+
+            LayerCode = layerCode.ToUpperInvariant().Trim();
+        }
+    }
+
+    public class DeleteAllLayersCommand
+    {
+        public DeleteAllLayersCommand() { }
+    }
+
+    public class MakeLayerAsRoutingSourceCommand
+    {
+        public readonly string LayerCode;
+
+        public MakeLayerAsRoutingSourceCommand(string layerCode)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
+
+            LayerCode = layerCode.ToUpperInvariant().Trim();
+        }
+    }
+
+    public class CreateLayerCommandFiled
+    {
+        public readonly string Code;
+        public readonly string Displayname;
+
+        public CreateLayerCommandFiled(string code, string displayname)
+        {
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
+
+            Code = code.ToUpperInvariant().Trim();
+            Displayname = displayname.Trim();
+        }
+    }
+
+    public class UpdateLayerCommand
+    {
+        public readonly string LayerCode;
+        public readonly string Displayname;
+        public readonly string DisplaynameFormat;//ElementDisplaynameFormat
+        public readonly bool UseInRouting;//IsElectrical
+        public readonly bool Disconnectable;//IsDisconnector
+
+        public UpdateLayerCommand(string layerCode,
+                                  string displayname,
+                                  string displaynameFormat,
+                                  bool useInRouting,
+                                  bool disconnectable)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(displaynameFormat)) throw new ArgumentException("قالب نمایش خالی وارد شده است!");
+
+            LayerCode = layerCode.ToUpperInvariant().Trim();
+            Displayname = displayname.Trim();
+            DisplaynameFormat = displaynameFormat.Trim();
+            UseInRouting = useInRouting;
+            Disconnectable = disconnectable;
+        }
+    }
+
+
+
 
     public class DeleteLayerFieldCommand
     {
@@ -227,10 +219,10 @@ public partial class GeographyRepository
 
         public DeleteElementsCommand(string layerCode, List<string> elementCodes, DateTime timetag)
         {
-            if (string.IsNullOrWhiteSpace(layerCode)) 
+            if (string.IsNullOrWhiteSpace(layerCode))
                 throw new ArgumentException("کُد لایه خالی وارد شده است!");
 
-            if (!elementCodes.Select(x => string.IsNullOrWhiteSpace(x)).Any()) 
+            if (!elementCodes.Select(x => string.IsNullOrWhiteSpace(x)).Any())
                 throw new ArgumentException("کُد خالی وارد شده است!");
 
             LayerCode = layerCode.ToUpperInvariant().Trim();
