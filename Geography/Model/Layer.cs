@@ -108,7 +108,7 @@ namespace GeographyModel
         {
             var index = 0;
             if (fields.Count > 0)
-                index = fields.Values.Max(x => x.Index);
+                index = fields.Values.Max(x => x.Index) + 1;
 
             var field = new LayerField(this, index, fieldCode, fieldDisplayname);
 
