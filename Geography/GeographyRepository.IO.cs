@@ -119,7 +119,7 @@ public partial class GeographyRepository
         foreach (var layer in repository._layers.Values)
         {
             if (!layer.IsElectrical) continue;
-            var layerElements = repository.getLayerElements(layer.Code);
+            var layerElements = repository.GetLayerElementsWithoutLock(layer.Code);
             if (!layerElements.Any()) continue;
 
             var counter = 0;
@@ -155,7 +155,7 @@ public partial class GeographyRepository
 
         foreach (var layer in repository._layers.Values)
         {
-            var layerElements = repository.getLayerElements(layer.Code);
+            var layerElements = repository.GetLayerElementsWithoutLock(layer.Code);
             if (!layerElements.Any()) continue;
 
             var counter = 0;
@@ -268,7 +268,7 @@ public partial class GeographyRepository
         => new LayerElement(layer,
                             input.Code,
                             input.Points,
-                            new string[] { },
+                            Array.Empty<string>(),
                             0,
                             input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,
                             input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,

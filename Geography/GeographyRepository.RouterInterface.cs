@@ -25,7 +25,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (layer == null)
             return new List<GeographyRouter.ILayerElement>();
 
-        return getLayerElements(layer.Code).ToList<GeographyRouter.ILayerElement>();
+        return GetLayerElementsWithoutLock(layer.Code).ToList<GeographyRouter.ILayerElement>();
 
     });
 

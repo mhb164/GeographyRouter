@@ -285,7 +285,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public LayerElement this[string code] => GetElement(code);
 
-    public LayerElement GetElement(string code)
+    public LayerElement GetElement(string code) => ReadByLock(() => GetElementWithoutLock(code));
+    protected LayerElement GetElementWithoutLock(string code)
     {
         if (_elements.TryGetValue(code, out var element))
             return element;
@@ -310,7 +311,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     {
         foreach (var owner in owners)
         {
-            var layerElements = getLayerElements(owner.Code);
+            var layerElements = GetLayerElementsWithoutLock(owner.Code);
 
             foreach (var item in layerElements)
             {
