@@ -9,6 +9,22 @@ using System.Threading.Tasks;
 
 public partial class GeographyRepository
 {
+    public static string PerformCodeCorrection(string code)
+        => code.ToUpperInvariant().Trim();
+
+    public static string PerformTextCorrection(string text)
+    {
+        if (text == null) return "";
+        text = text.Replace("ي", "ی").Replace("ك", "ک");
+        if (text.Contains("  "))
+        {
+            var options = System.Text.RegularExpressions.RegexOptions.None;
+            var regex = new System.Text.RegularExpressions.Regex("[ ]{2,}", options);
+            text = regex.Replace(text, " ");
+        }
+        return text.Trim();
+    }
+
     public class CreateLayerCommand
     {
         public readonly string Code;
@@ -21,9 +37,9 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
 
-            Code = code.ToUpperInvariant().Trim();
+            Code = PerformCodeCorrection(code);
             GeographyType = geographyType;
-            Displayname = displayname.Trim();
+            Displayname = PerformTextCorrection(displayname);
 
             var fieldCodes = fields.Select(x => x.Code);
             if (fieldCodes.Count() != fieldCodes.Distinct().Count())
@@ -61,9 +77,9 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            Code = code.ToUpperInvariant().Trim();
-            Displayname = displayname.Trim();
+            LayerCode = PerformCodeCorrection(layerCode);
+            Code = PerformCodeCorrection(code);
+            Displayname = PerformTextCorrection(displayname);
         }
     }
 
@@ -79,9 +95,24 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            Code = code.ToUpperInvariant().Trim();
-            Displayname = displayname.Trim();
+            LayerCode = PerformCodeCorrection(layerCode);
+            Code = PerformCodeCorrection(code);
+            Displayname = PerformTextCorrection(displayname);
+        }
+    }
+
+    public class DeleteLayerFieldCommand
+    {
+        public readonly string LayerCode;
+        public readonly string Code;
+
+        public DeleteLayerFieldCommand(string layerCode, string code)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
+
+            LayerCode = PerformCodeCorrection(layerCode);
+            Code = PerformCodeCorrection(code);
         }
     }
 
@@ -93,7 +124,7 @@ public partial class GeographyRepository
         {
             if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
+            LayerCode = PerformCodeCorrection(layerCode);
         }
     }
 
@@ -110,7 +141,7 @@ public partial class GeographyRepository
         {
             if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
+            LayerCode = PerformCodeCorrection(layerCode);
         }
     }
 
@@ -124,8 +155,8 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
 
-            Code = code.ToUpperInvariant().Trim();
-            Displayname = displayname.Trim();
+            Code = PerformCodeCorrection(code);
+            Displayname = PerformTextCorrection(displayname);
         }
     }
 
@@ -147,8 +178,8 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(displayname)) throw new ArgumentException("نام خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(displaynameFormat)) throw new ArgumentException("قالب نمایش خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            Displayname = displayname.Trim();
+            LayerCode = PerformCodeCorrection(layerCode);
+            Displayname = PerformTextCorrection(displayname);
             DisplaynameFormat = displaynameFormat.Trim();
             UseInRouting = useInRouting;
             Disconnectable = disconnectable;
@@ -158,57 +189,164 @@ public partial class GeographyRepository
 
 
 
-    public class DeleteLayerFieldCommand
-    {
-        public readonly string LayerCode;
-        public readonly string Code;
+    //public class UpdateElementPackageCommand
+    //{
+    //    public readonly string LayerCode;
+    //    public readonly string[] Descriptors;
+    //    public readonly IEnumerable<UpdateElementPackageItem> Items;
 
-        public DeleteLayerFieldCommand(string layerCode, string code)
-        {
-            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
-            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("کُد خالی وارد شده است!");
+    //    public UpdateElementPackageCommand(string layerCode, string[] descriptors, IEnumerable<UpdateElementPackageItem> items)
+    //    {
+    //        if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            Code = code.ToUpperInvariant().Trim();
-        }
-    }
+    //        LayerCode = PerformCodeCorrection(layerCode);
+    //        Descriptors = descriptors.Select(x => PerformCodeCorrection(x).Trim()).ToArray();
+    //        Items = items;
+    //    }
 
-    public class UpdateElementPackageCommand
+    //    public override string ToString() => $"{LayerCode}";
+    //}
+
+    //public class UpdateElementPackageItem
+    //{
+    //    public readonly string ElementCode;
+    //    public readonly DateTime Timetag;
+    //    public readonly double[] Points;
+    //    public readonly string[] DescriptorValues;
+    //    public readonly LayerElementStatus NormalStatus;
+    //    public readonly LayerElementStatus ActualStatus;
+
+    //    public UpdateElementPackageItem(string elementCode,
+    //        DateTime timetag,
+    //        double[] points,
+    //        string[] descriptorValues,
+    //        bool isNormalOpen,
+    //        bool connected)
+    //    {
+    //        if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
+
+    //        ElementCode = PerformCodeCorrection(elementCode);
+    //        Timetag = timetag;
+    //        Points = points;
+    //        DescriptorValues = descriptorValues.Select(x => PerformTextCorrection(x))
+    //                                           .ToArray();
+    //        NormalStatus =
+    //            isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close;
+
+    //        ActualStatus =
+    //            connected ? LayerElementStatus.Close : LayerElementStatus.Open;
+    //    }
+
+    //    public override string ToString() => $"{ElementCode}-{string.Join(", ", Points)}-{string.Join(", ", DescriptorValues)}";
+    //}
+
+    public class CreateUpdateElementCommand
     {
         public readonly string LayerCode;
         public readonly string[] Descriptors;
-        public readonly IEnumerable<UpdateElementPackageItem> Items;
+        public readonly string ElementCode;
+        public readonly DateTime Timetag;
+        public readonly double[] Points;
+        public readonly string[] DescriptorValues;
+        public readonly LayerElementStatus NormalStatus;
+        public readonly LayerElementStatus ActualStatus;
 
-        public UpdateElementPackageCommand(string layerCode, string[] descriptors, IEnumerable<UpdateElementPackageItem> items)
+        public CreateUpdateElementCommand(string layerCode,
+            string elementCode,
+            DateTime timetag,
+            double[] points,
+            string[] descriptorValues,
+            bool isNormalOpen,
+            bool connected)
+            : this(layerCode,
+                   elementCode,
+                   timetag,
+                   points,
+                   descriptorValues,
+                   isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close,
+                   connected ? LayerElementStatus.Close : LayerElementStatus.Open)
+        { }
+
+        public CreateUpdateElementCommand(string layerCode,
+            string elementCode,
+            DateTime timetag,
+            double[] points,
+            string[] descriptorValues,
+            LayerElementStatus normalStatus,
+            LayerElementStatus actualStatus)
         {
             if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            Descriptors = descriptors.Select(x => x.ToUpperInvariant().Trim()).ToArray();
-            Items = items;
+            LayerCode = PerformCodeCorrection(layerCode);
+            ElementCode = PerformCodeCorrection(elementCode);
+            Timetag = timetag;
+            Points = points;
+            DescriptorValues = descriptorValues.Select(x => PerformTextCorrection(x))
+                                               .ToArray();
+            NormalStatus = normalStatus;
+            ActualStatus = actualStatus;
         }
-
-        public override string ToString() => $"{LayerCode}";
     }
 
-    public class UpdateElementPackageItem
+    public class UpdateElementDataCommand
     {
+        public readonly string LayerCode;
+        public readonly string[] Descriptors;
         public readonly string ElementCode;
         public readonly DateTime Timetag;
         public readonly double[] Points;
         public readonly string[] DescriptorValues;
 
-        public UpdateElementPackageItem(string elementCode, DateTime timetag, double[] points, string[] descriptorValues)
+        public UpdateElementDataCommand(string layerCode,
+            string elementCode,
+            DateTime timetag,
+            double[] points,
+            string[] descriptorValues)
         {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
 
-            ElementCode = elementCode.ToUpperInvariant().Trim();
+            LayerCode = PerformCodeCorrection(layerCode);
+            ElementCode = PerformCodeCorrection(elementCode);
             Timetag = timetag;
             Points = points;
-            DescriptorValues = descriptorValues;
+            DescriptorValues = descriptorValues.Select(x => PerformTextCorrection(x))
+                                               .ToArray();
         }
+    }
 
-        public override string ToString() => $"{ElementCode}-{string.Join(", ", Points)}-{string.Join(", ", DescriptorValues)}";
+    public class UpdateElementStatusCommand
+    {
+        public readonly string LayerCode;
+        public readonly string ElementCode;
+        public readonly DateTime Timetag;
+        public readonly LayerElementStatus NormalStatus;
+        public readonly LayerElementStatus ActualStatus;
+
+        public UpdateElementStatusCommand(string layerCode,
+                                          string elementCode,
+                                          DateTime timetag,
+                                          bool isNormalOpen,
+                                          bool connected)
+            : this(layerCode,
+                   elementCode,
+                   timetag,
+                   isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close,
+                   connected ? LayerElementStatus.Close : LayerElementStatus.Open)
+        { }
+
+        public UpdateElementStatusCommand(string layerCode, string elementCode, DateTime timetag, LayerElementStatus normalStatus, LayerElementStatus actualStatus)
+        {
+            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
+
+            LayerCode = PerformCodeCorrection(layerCode);
+            ElementCode = PerformCodeCorrection(elementCode);
+            Timetag = timetag;
+            NormalStatus = normalStatus;
+            ActualStatus = actualStatus;
+        }
     }
 
     public class DeleteElementsCommand
@@ -225,12 +363,11 @@ public partial class GeographyRepository
             if (!elementCodes.Select(x => string.IsNullOrWhiteSpace(x)).Any())
                 throw new ArgumentException("کُد خالی وارد شده است!");
 
-            LayerCode = layerCode.ToUpperInvariant().Trim();
-            ElementCodes = elementCodes.Select(x => x.ToUpperInvariant()).ToList();
+            LayerCode = PerformCodeCorrection(layerCode);
+            ElementCodes = elementCodes.Select(x => PerformCodeCorrection(x)).ToList();
             Timetag = timetag;
         }
 
         public override string ToString() => $"{string.Join(", ", ElementCodes)}";
     }
-
 }

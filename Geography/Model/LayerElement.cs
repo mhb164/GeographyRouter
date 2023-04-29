@@ -1,25 +1,86 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 
 
 namespace GeographyModel
 {
-    [DataContract]
-    public partial class LayerElement
+    public enum LayerElementStatus
     {
-        [DataMember(Order = 01)]
-        public string Code { get; set; }
-
-        [DataMember(Order = 01)]
-        public long Version { get; set; }
-
-        [DataMember(Order = 03)]
-        public double[] Points { get; set; }
-
-        [DataMember(Order = 04)]
-        public string FieldValuesText { get; set; }
+        Open = 0,
+        Close = 1,
     }
 
+    public partial class LayerElement
+    {
+        public readonly static List<LayerElement> EmptyList = new List<LayerElement>();
+
+        public readonly Layer Layer;
+        public readonly string Code;
+
+        public LayerElement(Layer layer,
+                            string code,
+                            double[] points,
+                            string[] fieldValues,
+                            LayerElementStatus normalStatus,
+                            LayerElementStatus actualStatus,
+                            long version)
+        {
+            Layer = layer;
+            Code = code;
+            Points = points;
+            FieldValues = fieldValues;
+            NormalStatus = normalStatus;
+            ActualStatus = actualStatus;
+            DataVersion = StatusVersion = version;
+        }
+
+        public void Update(double[] points,
+                           string[] fieldValues,
+                           LayerElementStatus normalStatus,
+                           LayerElementStatus actualStatus,
+                           long version)
+        {
+            Points = points;
+            FieldValues = fieldValues;
+            NormalStatus = normalStatus;
+            ActualStatus = actualStatus;
+            DataVersion = StatusVersion = version;
+        }
+
+        public void UpdateData(double[] points,
+                           string[] fieldValues,
+                           long version)
+        {
+            Points = points;
+            FieldValues = fieldValues;
+            DataVersion = version;
+        }
+
+        public void UpdateStatus(LayerElementStatus normalStatus,
+            LayerElementStatus actualStatus,
+            long version)
+        {
+            NormalStatus = normalStatus;
+            ActualStatus = actualStatus;
+            StatusVersion = version;
+        }
+
+        public double[] Points { get; private set; }
+
+        public string[] FieldValues { get; private set; }
+
+        public long DataVersion { get; private set; }
+
+        public LayerElementStatus NormalStatus { get; private set; }
+
+        public LayerElementStatus ActualStatus { get; private set; }
+
+        public long StatusVersion { get; private set; }
+
+        public bool Connected => ActualStatus == LayerElementStatus.Close;
+
+        public override string ToString() => Displayname;
+    }
 }

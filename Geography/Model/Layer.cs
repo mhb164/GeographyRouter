@@ -91,7 +91,7 @@ namespace GeographyModel
                 if (fieldCode == "CONNECTED") continue;
                 if (fieldCode == "CONNECTED-PERSIAN") continue;
 
-                var field = Fields.FirstOrDefault(x => x.Code == fieldCode);
+                var field = GetField(fieldCode);
                 if (field == null)
                 {
                     errorMessage = $"{fieldCode} not found!";

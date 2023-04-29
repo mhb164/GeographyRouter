@@ -64,6 +64,9 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public long Version => ReadByLock(() => version);
     public string VersionAsTimeText => $"{new DateTime(Version):yyyy-MM-dd HH:mm:ss.fff}";
+    private void updateVersion(long version1Requestd, long version2Requestd, bool log = true)
+        => updateVersion(Math.Max(version1Requestd, version2Requestd), log);
+
     private void updateVersion(long versionRequestd, bool log = true)
     {
         var newVersion = Math.Max(version, versionRequestd);

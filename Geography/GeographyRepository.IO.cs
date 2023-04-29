@@ -61,6 +61,25 @@ namespace Geography.IO
         public string Displayname { get; set; }
     }
 
+    public enum ElementStatus
+    {
+        Open = 0,
+        Close = 1,
+    }
+
+    [DataContract]
+    public class Element
+    {
+        [DataMember(Order = 01)]
+        public string Code { get; set; }
+
+        [DataMember(Order = 02)]
+        public double[] Points { get; set; }
+
+        [DataMember(Order = 03)]
+        public bool Connected { get; set; }
+    }
+
 }
 
 public partial class GeographyRepository
@@ -109,15 +128,14 @@ public partial class GeographyRepository
                 counter++;
                 var layerElementsFilename = Path.Combine(root, $"Layer_{layer.Code}_{counter}.json");
 
-                var liteLayerElements = new List<LayerElement>();
+                var liteLayerElements = new List<Geography.IO.Element>();
                 foreach (var item in splited)
                 {
-                    var liteLayerElement = new LayerElement()
+                    var liteLayerElement = new Geography.IO.Element()
                     {
                         Code = item.Code,
-                        Version = item.Version,
                         Points = item.Points,
-                        FieldValuesText = "",
+                        Connected = item.Connected,
                     };
 
                     liteLayerElements.Add(liteLayerElement);
@@ -169,7 +187,7 @@ public partial class GeographyRepository
     private static readonly Regex LayerFilePattern = new Regex(@"Layer_(?<layerCode>\D+)_(?<num>\d+)");
     public static T Load<T>(string root, Action<string> logAction) where T : GeographyRepository
     {
-        var layers = default(List<Layer>);
+        var layers = default(Dictionary<string, Layer>);
         var layerElementsPackage = new Dictionary<string, List<LayerElement>>();
 
         InvokeByStopwatch(
@@ -177,7 +195,9 @@ public partial class GeographyRepository
            logAction,
            () =>
            {
-               layers = DeSerializeEntity<List<Layer>>(Path.Combine(root, "Layers.json"));
+               var layersFromDisk = DeSerializeEntity<List<Geography.IO.Layer>>(Path.Combine(root, "Layers.json"));
+               layers = layersFromDisk.Select(x => ToDomain(x))
+                                      .ToDictionary(x => x.Code);
 
                var refined = Directory.GetFiles(root, "Layer_*.json").Select(layerfilename =>
                {
@@ -198,10 +218,11 @@ public partial class GeographyRepository
 
                Parallel.ForEach(refined, (refinedItem) =>
                {
-                   var layerElements = DeSerializeEntity<List<LayerElement>>(refinedItem.Filename);
+                   var layer = layers[refinedItem.LayerCode];
+                   var layerElements = DeSerializeEntity<List<Geography.IO.Element>>(refinedItem.Filename);
                    lock (layerElementsPackage)
                    {
-                       layerElementsPackage[refinedItem.LayerCode].AddRange(layerElements);
+                       layerElementsPackage[refinedItem.LayerCode].AddRange(layerElements.Select(x => ToDomain(layer, x)).ToList());
                    }
                });
 
@@ -219,13 +240,13 @@ public partial class GeographyRepository
 
                 InvokeByStopwatch(
                     "Initial Repository> layers & fields",
-                    logAction, () => repository.Initial(layers));
+                    logAction, () => repository.Initial(layers.Values));
 
                 foreach (var layerElementsPackageItem in layerElementsPackage)
                 {
                     InvokeByStopwatch(
                         $"Initial Repository> elements of {layerElementsPackageItem.Key}",
-                        logAction, () => repository.Initial(layerElementsPackageItem.Key, layerElementsPackageItem.Value));
+                        logAction, () => repository.Initial(layerElementsPackageItem.Value));
                 }
 
                 repository.EndInitial(null);
@@ -233,6 +254,26 @@ public partial class GeographyRepository
 
         return instance;
     }
+
+    private static Layer ToDomain(Geography.IO.Layer input)
+        => new Layer(input.Code,
+                     input.Displayname,
+                     (LayerGeographyType)(int)input.GeographyType,
+                     input.ElementDisplaynameFormat,
+                     input.IsRoutingSource,
+                     input.IsElectrical,
+                     input.IsDisconnector);
+
+    private static LayerElement ToDomain(Layer layer, Geography.IO.Element input)
+        => new LayerElement(layer,
+                            input.Code,
+                            input.Points,
+                            new string[] { },
+                            input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,
+                            input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,
+                            0);
+
+
 
     private static void InvokeByStopwatch(string title, Action<string> logAction, Action action)
     {

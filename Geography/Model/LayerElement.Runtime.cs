@@ -10,84 +10,37 @@ namespace GeographyModel
 {
     public partial class LayerElement
     {
-        public readonly static List<LayerElement> EmptyList = new List<LayerElement>();
-        public void Reset(Layer layer)
+        public bool CheckPointsChange(in double[] points)
         {
-            Layer = layer;
-        }
-        ~LayerElement()
-        {
-            Layer = null;
-        }
+            if (this.Points.Length != points.Length)
+                return false;
 
-        [IgnoreDataMember, JsonIgnore]
-        public Layer Layer { get; private set; }
+            for (int i = 0; i < this.Points.Length; i++)
+                if (this.Points[i] != points[i])
+                    return false;
 
-        [IgnoreDataMember, JsonIgnore]
-        public string Displayname { get; private set; }
-
-        [IgnoreDataMember, JsonIgnore]
-        public string[] FieldValues => FieldValuesText.Split('♦');
-
-        public void ResetDisplayname()
-        {
-            if (Layer == null) Displayname = "";
-            else
-            {
-                try
-                {
-                    if (string.IsNullOrWhiteSpace(Layer.ElementDisplaynameFormat)) Displayname = $"{Layer.Displayname} ({Code})";
-                    else if (Layer.ElementDisplaynameFormat == "{LAYERNAME} ({CODE})") Displayname = $"{Layer.Displayname} ({Code})";
-                    else
-                    {
-                        Displayname = Layer.ElementDisplaynameFormat;
-                        //------------------
-                        if (Displayname.Contains("{LAYERNAME}")) Displayname = Displayname.Replace("{LAYERNAME}", Layer.Displayname);
-                        if (Displayname.Contains("{CODE}")) Displayname = Displayname.Replace("{CODE}", Code);
-                        if (Displayname.Contains("{CONNECTED}")) Displayname = Displayname.Replace("{CONNECTED}", Connected ? "CLOSE" : "OPEN");
-                        if (Displayname.Contains("{CONNECTED-PERSIAN}")) Displayname = Displayname.Replace("{CONNECTED-PERSIAN}", Connected ? "وصل" : "قطع");
-                        //------------------
-                        var fieldValues = FieldValues;
-                        foreach (var field in Layer.Fields)
-                            if (field.Index < fieldValues.Length && Displayname.Contains($"{{{field.Code}}}"))
-                            {
-                                var value = string.Empty;
-                                value = FieldValues[field.Index];
-                                Displayname = Displayname.Replace($"{{{field.Code}}}", value);
-                            }
-
-                        Displayname = PerformTextCorrection(Displayname);
-
-                        if (Displayname.Contains("{"))
-                        {
-
-                        }
-                    }
-                }
-                catch
-                {
-                    Displayname = $"{Layer.Displayname} ({Code})";
-                }
-            }
+            return true;
         }
 
-        public static string PerformTextCorrection(string text)
+        public bool CheckFieldValuesChange(in string[] fieldValues)
         {
-            if (text == null) return "";
-            text = text.Replace("ي", "ی").Replace("ك", "ک");
-            if (text.Contains("  "))
-            {
-                var options = System.Text.RegularExpressions.RegexOptions.None;
-                var regex = new System.Text.RegularExpressions.Regex("[ ]{2,}", options);
-                text = regex.Replace(text, " ");
-            }
-            return text;
+            if (this.FieldValues.Length != fieldValues.Length)
+                return false;
+
+            for (int i = 0; i < this.FieldValues.Length; i++)
+                if (this.FieldValues[i] != fieldValues[i])
+                    return false;
+
+            return true;
         }
+
+        public bool CheckStatusChange(in LayerElementStatus normalStatus, in LayerElementStatus actualStatus)
+            => NormalStatus != normalStatus || ActualStatus != actualStatus;
 
         public string GetFieldvalue(string Fieldcode)
         {
             if (Layer == null) return string.Empty;
-            var field = Layer.Fields.FirstOrDefault(x => x.Code == Fieldcode.ToUpper().Trim());
+            var field = Layer.GetField(Fieldcode);
             if (field == null) return string.Empty;
             var fieldValues = FieldValues;
             if (field.Index >= fieldValues.Length) return string.Empty;

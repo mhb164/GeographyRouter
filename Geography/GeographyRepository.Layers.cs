@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 public partial class GeographyRepository
 {
-    public void Initial(List<Layer> layers)
+    public void Initial(IEnumerable<Layer> layers)
     {
         foreach (var item in layers)
         {
@@ -227,9 +227,13 @@ public partial class GeographyRepository
     {
         WriteByLock(() =>
         {
-            if (!_layers.TryGetValue(layerCode, out var layer))
+            if (!_elementsByLayerCode.TryGetValue(layerCode, out var layerElements))
                 return;
 
+            foreach (var item in layerElements.Values)
+            {
+                item.MakeDisplaynameNull();
+            }
         });
     }).Start();
 

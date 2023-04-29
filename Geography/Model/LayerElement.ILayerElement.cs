@@ -1,47 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
-using System.Text.Json.Serialization;
 
 namespace GeographyModel
 {
     public partial class LayerElement : GeographyRouter.ILayerElement
     {
-        public override string ToString() => Displayname;
+        string GeographyRouter.ILayerElement.Code => Code;
 
-        public static Func<LayerElement, bool?> GetConnectivityFunc;
-        [IgnoreDataMember, JsonIgnore]
-        public bool Connected
-        {
-            get
-            {
-                var connectivity = GetConnectivityFunc?.Invoke(this);
-                if (connectivity.HasValue) return connectivity.Value;
-                else return true;
-            }
-        }
-
-        [IgnoreDataMember, JsonIgnore]
         bool GeographyRouter.ILayerElement.GeographyTypeIsPoint => Layer.GeographyType == LayerGeographyType.Point;
 
-        [IgnoreDataMember, JsonIgnore]
         bool GeographyRouter.ILayerElement.GeographyTypeIsLine => Layer.GeographyType == LayerGeographyType.Polyline;
 
-        [IgnoreDataMember, JsonIgnore]
         bool GeographyRouter.ILayerElement.GeographyTypeIsPolygon => Layer.GeographyType == LayerGeographyType.Polygon;
 
-        [IgnoreDataMember, JsonIgnore]
         public List<GeographyRouter.CoordinateRef> Coordinates { get; private set; }
 
-        [IgnoreDataMember, JsonIgnore]
         public GeographyRouter.CoordinateRef CoordinateFirst { get; private set; }
 
-        [IgnoreDataMember, JsonIgnore]
         public GeographyRouter.CoordinateRef CoordinateLast { get; private set; }
 
-        [IgnoreDataMember, JsonIgnore]
         public bool Routed { get; set; }
 
         public void ResetRouting()
