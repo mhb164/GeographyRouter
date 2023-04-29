@@ -196,6 +196,7 @@ public partial class GeographyRepository
         public readonly string[] DescriptorValues;
         public readonly LayerElementStatus NormalStatus;
         public readonly LayerElementStatus ActualStatus;
+        public readonly LayerElementStatusSource StatusSource;
 
         public CreateUpdateElementCommand(string layerCode,
             string[] layerDescriptors,
@@ -204,7 +205,8 @@ public partial class GeographyRepository
             double[] points,
             string[] descriptorValues,
             bool isNormalOpen,
-            bool connected)
+            bool connected,
+            LayerElementStatusSource statusSource)
             : this(layerCode,
                    layerDescriptors,
                    elementCode,
@@ -212,8 +214,10 @@ public partial class GeographyRepository
                    points,
                    descriptorValues,
                    isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close,
-                   connected ? LayerElementStatus.Close : LayerElementStatus.Open)
-        { }
+                   connected ? LayerElementStatus.Close : LayerElementStatus.Open,
+                   statusSource)
+        {
+        }
 
         public CreateUpdateElementCommand(string layerCode,
             string[] layerDescriptors,
@@ -222,7 +226,8 @@ public partial class GeographyRepository
             double[] points,
             string[] descriptorValues,
             LayerElementStatus normalStatus,
-            LayerElementStatus actualStatus)
+            LayerElementStatus actualStatus,
+            LayerElementStatusSource statusSource)
         {
             if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
@@ -236,6 +241,7 @@ public partial class GeographyRepository
                                                .ToArray();
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
+            StatusSource = statusSource;
         }
     }
 
@@ -275,20 +281,28 @@ public partial class GeographyRepository
         public readonly DateTime Timetag;
         public readonly LayerElementStatus NormalStatus;
         public readonly LayerElementStatus ActualStatus;
+        public readonly LayerElementStatusSource StatusSource;
 
         public UpdateElementStatusCommand(string layerCode,
                                           string elementCode,
                                           DateTime timetag,
                                           bool isNormalOpen,
-                                          bool connected)
+                                          bool connected,
+                                          LayerElementStatusSource statusSource)
             : this(layerCode,
                    elementCode,
                    timetag,
                    isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close,
-                   connected ? LayerElementStatus.Close : LayerElementStatus.Open)
+                   connected ? LayerElementStatus.Close : LayerElementStatus.Open,
+                   statusSource)
         { }
 
-        public UpdateElementStatusCommand(string layerCode, string elementCode, DateTime timetag, LayerElementStatus normalStatus, LayerElementStatus actualStatus)
+        public UpdateElementStatusCommand(string layerCode,
+            string elementCode,
+            DateTime timetag,
+            LayerElementStatus normalStatus,
+            LayerElementStatus actualStatus,
+            LayerElementStatusSource statusSource)
         {
             if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
@@ -298,6 +312,7 @@ public partial class GeographyRepository
             Timetag = timetag;
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
+            StatusSource = statusSource;
         }
     }
 

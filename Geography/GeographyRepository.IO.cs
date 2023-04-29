@@ -272,6 +272,7 @@ public partial class GeographyRepository
                             0,
                             input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,
                             input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,
+                            LayerElementStatusSource.Extractor,
                             0);
 
 

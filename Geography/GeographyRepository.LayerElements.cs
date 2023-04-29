@@ -65,7 +65,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                      in command.Points,
                                      in elementFieldValues,
                                      command.NormalStatus,
-                                     command.ActualStatus);
+                                     command.ActualStatus,
+                                     command.StatusSource);
         else
             return CreateWithoutLock(layer,
                                      command.ElementCode,
@@ -73,7 +74,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                      in command.Points,
                                      in elementFieldValues,
                                      command.NormalStatus,
-                                     command.ActualStatus);
+                                     command.ActualStatus,
+                                     command.StatusSource);
     }
 
     private UpdateResult UpdateWithoutLock(Layer layer,
@@ -82,7 +84,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                            in double[] points,
                                            in string[] elementFieldValues,
                                            LayerElementStatus normalStatus,
-                                           LayerElementStatus actualStatus)
+                                           LayerElementStatus actualStatus,
+                                           LayerElementStatusSource statusSource)
     {
         if (element.Layer.Code != layer.Code)
             return UpdateResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
@@ -105,7 +108,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             element.UpdateData(points, elementFieldValues, updatedVersion);
 
         if (statusChanged && element.StatusVersion <= updatedVersion)
-            element.UpdateStatus(normalStatus, actualStatus, updatedVersion);
+            element.UpdateStatus(normalStatus, actualStatus, statusSource, updatedVersion);
 
         if (element.Layer.IsElectrical && (element.Layer.GeographyType == LayerGeographyType.Point || element.Layer.GeographyType == LayerGeographyType.Polyline))
             ElecricalMatrix.Add(element);
@@ -122,7 +125,8 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                            in double[] points,
                                            in string[] elementFieldValues,
                                            LayerElementStatus normalStatus,
-                                           LayerElementStatus actualStatus)
+                                           LayerElementStatus actualStatus,
+                                           LayerElementStatusSource statusSource)
     {
         var element = new LayerElement(layer,
                                        elementCode,
@@ -131,6 +135,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                        createVersion,
                                        normalStatus,
                                        actualStatus,
+                                       statusSource,
                                        createVersion);
 
         _elements.Add(element.Code, element);
@@ -234,7 +239,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (!statusChanged)
             return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
 
-        element.UpdateStatus(command.NormalStatus, command.ActualStatus, updatedVersion);
+        element.UpdateStatus(command.NormalStatus, command.ActualStatus, command.StatusSource, updatedVersion);
 
         updateVersion(element.StatusVersion);
         Save(element);

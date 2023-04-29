@@ -12,6 +12,13 @@ namespace GeographyModel
         Close = 1,
     }
 
+    public enum LayerElementStatusSource
+    {
+        Extractor = 0,
+        SCADA = 1,
+        User = 2,
+    }
+
     public partial class LayerElement
     {
         public readonly static List<LayerElement> EmptyList = new List<LayerElement>();
@@ -26,17 +33,19 @@ namespace GeographyModel
                             long dataVersion,
                             LayerElementStatus normalStatus,
                             LayerElementStatus actualStatus,
+                            LayerElementStatusSource statusSource,
                             long statusVersion)
         {
             Layer = layer;
             Code = code;
-            
+
             Points = points;
             FieldValues = fieldValues;
             DataVersion = dataVersion;
 
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
+            StatusSource = statusSource;
             StatusVersion = statusVersion;
         }
 
@@ -44,12 +53,14 @@ namespace GeographyModel
                            string[] fieldValues,
                            LayerElementStatus normalStatus,
                            LayerElementStatus actualStatus,
+                           LayerElementStatusSource statusSource,
                            long version)
         {
             Points = points;
             FieldValues = fieldValues;
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
+            StatusSource = statusSource;
             DataVersion = StatusVersion = version;
         }
 
@@ -64,10 +75,12 @@ namespace GeographyModel
 
         public void UpdateStatus(LayerElementStatus normalStatus,
             LayerElementStatus actualStatus,
+            LayerElementStatusSource statusSource,
             long version)
         {
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
+            StatusSource = statusSource;
             StatusVersion = version;
         }
 
@@ -80,6 +93,8 @@ namespace GeographyModel
         public LayerElementStatus NormalStatus { get; private set; }
 
         public LayerElementStatus ActualStatus { get; private set; }
+
+        public LayerElementStatusSource StatusSource { get; private set; }
 
         public long StatusVersion { get; private set; }
 
