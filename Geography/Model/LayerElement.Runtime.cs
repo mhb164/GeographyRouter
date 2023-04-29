@@ -66,6 +66,7 @@ namespace GeographyModel
         }
 
         public static string TranslateFieldValues(List<string> values) => string.Join("♦", values);
+        public static string[] TranslateFieldValues(string fieldsAsText) => fieldsAsText.Split('♦');
 
         public static bool TranslateShape(string shape, uint defaultSRID, out List<double> points, out string message)
         {

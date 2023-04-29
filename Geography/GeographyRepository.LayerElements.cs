@@ -128,6 +128,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                        elementCode,
                                        points,
                                        elementFieldValues,
+                                       createVersion,
                                        normalStatus,
                                        actualStatus,
                                        createVersion);

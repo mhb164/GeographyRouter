@@ -23,17 +23,21 @@ namespace GeographyModel
                             string code,
                             double[] points,
                             string[] fieldValues,
+                            long dataVersion,
                             LayerElementStatus normalStatus,
                             LayerElementStatus actualStatus,
-                            long version)
+                            long statusVersion)
         {
             Layer = layer;
             Code = code;
+            
             Points = points;
             FieldValues = fieldValues;
+            DataVersion = dataVersion;
+
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
-            DataVersion = StatusVersion = version;
+            StatusVersion = statusVersion;
         }
 
         public void Update(double[] points,

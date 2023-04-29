@@ -269,6 +269,7 @@ public partial class GeographyRepository
                             input.Code,
                             input.Points,
                             new string[] { },
+                            0,
                             input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,
                             input.Connected ? LayerElementStatus.Close : LayerElementStatus.Open,
                             0);
