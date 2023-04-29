@@ -16,9 +16,9 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public void Initial(IEnumerable<LayerElement> layerElements)
     {
-        foreach (var item in layerElements)
+        foreach (var element in layerElements)
         {
-            if (_elements.TryGetValue(item.Code, out var element))
+            if (_elements.TryGetValue(element.Code, out var existing))
                 continue;
 
             _elements.Add(element.Code, element);
