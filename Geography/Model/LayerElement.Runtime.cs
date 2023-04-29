@@ -13,25 +13,25 @@ namespace GeographyModel
         public bool CheckPointsChange(in double[] points)
         {
             if (this.Points.Length != points.Length)
-                return false;
+                return true;
 
             for (int i = 0; i < this.Points.Length; i++)
                 if (this.Points[i] != points[i])
-                    return false;
+                    return true;
 
-            return true;
+            return false;
         }
 
         public bool CheckFieldValuesChange(in string[] fieldValues)
         {
             if (this.FieldValues.Length != fieldValues.Length)
-                return false;
+                return true;
 
             for (int i = 0; i < this.FieldValues.Length; i++)
                 if (this.FieldValues[i] != fieldValues[i])
-                    return false;
+                    return true;
 
-            return true;
+            return false;
         }
 
         public bool CheckStatusChange(in LayerElementStatus normalStatus, in LayerElementStatus actualStatus)
