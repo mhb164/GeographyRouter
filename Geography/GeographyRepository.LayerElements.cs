@@ -49,9 +49,9 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         var elementFieldValues = new string[layer.Fields.Count()];
         foreach (var layerField in layer.Fields.OrderBy(x => x.Index))
         {
-            if (command.Descriptors.Contains(layerField.Code))
+            if (command.LayerDescriptors.Contains(layerField.Code))
             {
-                var index = Array.IndexOf(command.Descriptors, layerField.Code);
+                var index = Array.IndexOf(command.LayerDescriptors, layerField.Code);
                 elementFieldValues[layerField.Index] = command.DescriptorValues[index];
             }
             else
@@ -171,9 +171,9 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         var elementFieldValues = new string[layer.Fields.Count()];
         foreach (var layerField in layer.Fields.OrderBy(x => x.Index))
         {
-            if (command.Descriptors.Contains(layerField.Code))
+            if (command.LayerDescriptors.Contains(layerField.Code))
             {
-                var index = Array.IndexOf(command.Descriptors, layerField.Code);
+                var index = Array.IndexOf(command.LayerDescriptors, layerField.Code);
                 elementFieldValues[layerField.Index] = command.DescriptorValues[index];
             }
             else

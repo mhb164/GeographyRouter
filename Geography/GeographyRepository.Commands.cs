@@ -186,64 +186,10 @@ public partial class GeographyRepository
         }
     }
 
-
-
-
-    //public class UpdateElementPackageCommand
-    //{
-    //    public readonly string LayerCode;
-    //    public readonly string[] Descriptors;
-    //    public readonly IEnumerable<UpdateElementPackageItem> Items;
-
-    //    public UpdateElementPackageCommand(string layerCode, string[] descriptors, IEnumerable<UpdateElementPackageItem> items)
-    //    {
-    //        if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
-
-    //        LayerCode = PerformCodeCorrection(layerCode);
-    //        Descriptors = descriptors.Select(x => PerformCodeCorrection(x).Trim()).ToArray();
-    //        Items = items;
-    //    }
-
-    //    public override string ToString() => $"{LayerCode}";
-    //}
-
-    //public class UpdateElementPackageItem
-    //{
-    //    public readonly string ElementCode;
-    //    public readonly DateTime Timetag;
-    //    public readonly double[] Points;
-    //    public readonly string[] DescriptorValues;
-    //    public readonly LayerElementStatus NormalStatus;
-    //    public readonly LayerElementStatus ActualStatus;
-
-    //    public UpdateElementPackageItem(string elementCode,
-    //        DateTime timetag,
-    //        double[] points,
-    //        string[] descriptorValues,
-    //        bool isNormalOpen,
-    //        bool connected)
-    //    {
-    //        if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
-
-    //        ElementCode = PerformCodeCorrection(elementCode);
-    //        Timetag = timetag;
-    //        Points = points;
-    //        DescriptorValues = descriptorValues.Select(x => PerformTextCorrection(x))
-    //                                           .ToArray();
-    //        NormalStatus =
-    //            isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close;
-
-    //        ActualStatus =
-    //            connected ? LayerElementStatus.Close : LayerElementStatus.Open;
-    //    }
-
-    //    public override string ToString() => $"{ElementCode}-{string.Join(", ", Points)}-{string.Join(", ", DescriptorValues)}";
-    //}
-
     public class CreateUpdateElementCommand
     {
         public readonly string LayerCode;
-        public readonly string[] Descriptors;
+        public readonly string[] LayerDescriptors;
         public readonly string ElementCode;
         public readonly DateTime Timetag;
         public readonly double[] Points;
@@ -252,6 +198,7 @@ public partial class GeographyRepository
         public readonly LayerElementStatus ActualStatus;
 
         public CreateUpdateElementCommand(string layerCode,
+            string[] layerDescriptors,
             string elementCode,
             DateTime timetag,
             double[] points,
@@ -259,6 +206,7 @@ public partial class GeographyRepository
             bool isNormalOpen,
             bool connected)
             : this(layerCode,
+                   layerDescriptors,
                    elementCode,
                    timetag,
                    points,
@@ -268,6 +216,7 @@ public partial class GeographyRepository
         { }
 
         public CreateUpdateElementCommand(string layerCode,
+            string[] layerDescriptors,
             string elementCode,
             DateTime timetag,
             double[] points,
@@ -279,6 +228,7 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
 
             LayerCode = PerformCodeCorrection(layerCode);
+            LayerDescriptors = layerDescriptors.Select(x => PerformCodeCorrection(x)).ToArray();
             ElementCode = PerformCodeCorrection(elementCode);
             Timetag = timetag;
             Points = points;
@@ -292,13 +242,14 @@ public partial class GeographyRepository
     public class UpdateElementDataCommand
     {
         public readonly string LayerCode;
-        public readonly string[] Descriptors;
+        public readonly string[] LayerDescriptors;
         public readonly string ElementCode;
         public readonly DateTime Timetag;
         public readonly double[] Points;
         public readonly string[] DescriptorValues;
 
         public UpdateElementDataCommand(string layerCode,
+            string[] layerDescriptors,
             string elementCode,
             DateTime timetag,
             double[] points,
@@ -308,6 +259,7 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
 
             LayerCode = PerformCodeCorrection(layerCode);
+            LayerDescriptors = layerDescriptors.Select(x => PerformCodeCorrection(x)).ToArray();
             ElementCode = PerformCodeCorrection(elementCode);
             Timetag = timetag;
             Points = points;
