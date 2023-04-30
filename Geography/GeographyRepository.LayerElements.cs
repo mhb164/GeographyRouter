@@ -31,7 +31,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         }
     }
 
-    public UpdateResult Excecute(CreateUpdateElementCommand command)
+    public UpdateElementResult Excecute(CreateUpdateElementCommand command)
     {
         var result = WriteByLock(() => ExcecuteWithoutLock(command));
 
@@ -41,10 +41,10 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         return result;
     }
 
-    public UpdateResult ExcecuteWithoutLock(CreateUpdateElementCommand command)
+    public UpdateElementResult ExcecuteWithoutLock(CreateUpdateElementCommand command)
     {
         if (!_layers.TryGetValue(command.LayerCode, out var layer))
-            return UpdateResult.Failed("لایه با کد درخواست شده وجود ندارد!");
+            return UpdateElementResult.Failed("لایه با کد درخواست شده وجود ندارد!");
 
         var elementFieldValues = new string[layer.Fields.Count()];
         foreach (var layerField in layer.Fields.OrderBy(x => x.Index))
@@ -78,7 +78,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                      command.StatusSource);
     }
 
-    private UpdateResult UpdateWithoutLock(Layer layer,
+    private UpdateElementResult UpdateWithoutLock(Layer layer,
                                            LayerElement element,
                                            long updatedVersion,
                                            in double[] points,
@@ -88,10 +88,10 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                            LayerElementStatusSource statusSource)
     {
         if (element.Layer.Code != layer.Code)
-            return UpdateResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
+            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
 
         if (element.DataVersion > updatedVersion && element.StatusVersion > updatedVersion)
-            return UpdateResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Version passed!)");
+            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Version passed!)");
 
         var pointsChanged = element.CheckPointsChange(points);
         var fieldValuesChanged = element.CheckFieldValuesChange(elementFieldValues);
@@ -100,7 +100,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         var changed = pointsChanged || fieldValuesChanged || statusChanged;
 
         if (!changed)
-            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
+            return UpdateElementResult.Failed("در موارد درخواست شده تغییر داده نشده!");
 
         ElecricalMatrix.Remove(element);
 
@@ -115,11 +115,11 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
         updateVersion(element.DataVersion, element.StatusVersion);
         Save(element);
-        return UpdateResult.Success($"[{layer.Code}-{element.Code}] updated.");
+        return UpdateElementResult.Success(pointsChanged, fieldValuesChanged, statusChanged, $"[{layer.Code}-{element.Code}] updated.");
 
     }
 
-    private UpdateResult CreateWithoutLock(Layer layer,
+    private UpdateElementResult CreateWithoutLock(Layer layer,
                                            string elementCode,
                                            long createVersion,
                                            in double[] points,
@@ -146,10 +146,10 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
         updateVersion(element.DataVersion, element.StatusVersion);
         Save(element);
-        return UpdateResult.Success($"[{layer.Code}-{element.Code}] created.");
+        return UpdateElementResult.Success(true, true, true, $"[{layer.Code}-{element.Code}] created.");
     }
 
-    public UpdateResult Excecute(UpdateElementDataCommand command)
+    public UpdateElementResult Excecute(UpdateElementDataCommand command)
     {
         var result = WriteByLock(() => ExcecuteWithoutLock(command));
 
@@ -159,20 +159,20 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         return result;
     }
 
-    public UpdateResult ExcecuteWithoutLock(UpdateElementDataCommand command)
+    public UpdateElementResult ExcecuteWithoutLock(UpdateElementDataCommand command)
     {
         if (!_layers.TryGetValue(command.LayerCode, out var layer))
-            return UpdateResult.Failed("لایه با کد درخواست شده وجود ندارد!");
+            return UpdateElementResult.Failed("لایه با کد درخواست شده وجود ندارد!");
 
         if (!_elements.TryGetValue(command.ElementCode, out var element))
-            return UpdateResult.Failed("المان با کُدِ درخواست شده وجود ندارد!");
+            return UpdateElementResult.Failed("المان با کُدِ درخواست شده وجود ندارد!");
 
         if (element.Layer.Code != layer.Code)
-            return UpdateResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
+            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
 
         var updatedVersion = command.Timetag.Ticks;
         if (element.DataVersion > updatedVersion)
-            return UpdateResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(DataVersion passed!)");
+            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(DataVersion passed!)");
 
         var elementFieldValues = new string[layer.Fields.Count()];
         foreach (var layerField in layer.Fields.OrderBy(x => x.Index))
@@ -192,7 +192,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         var changed = pointsChanged || fieldValuesChanged;
 
         if (!changed)
-            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
+            return UpdateElementResult.Failed("در موارد درخواست شده تغییر داده نشده!");
 
         ElecricalMatrix.Remove(element);
 
@@ -203,11 +203,11 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
         updateVersion(element.DataVersion);
         Save(element);
-        return UpdateResult.Success($"[{layer.Code}-{element.Code}] Data updated.");
+        return UpdateElementResult.Success(pointsChanged, fieldValuesChanged, false, $"[{layer.Code}-{element.Code}] Data updated.");
 
     }
 
-    public UpdateResult Excecute(UpdateElementStatusCommand command)
+    public UpdateElementResult Excecute(UpdateElementStatusCommand command)
     {
         var result = WriteByLock(() => ExcecuteWithoutLock(command));
 
@@ -217,34 +217,34 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         return result;
     }
 
-    public UpdateResult ExcecuteWithoutLock(UpdateElementStatusCommand command)
+    public UpdateElementResult ExcecuteWithoutLock(UpdateElementStatusCommand command)
     {
         if (!_layers.TryGetValue(command.LayerCode, out var layer))
-            return UpdateResult.Failed("لایه با کد درخواست شده وجود ندارد!");
+            return UpdateElementResult.Failed("لایه با کد درخواست شده وجود ندارد!");
 
         if (!_elements.TryGetValue(command.ElementCode, out var element))
-            return UpdateResult.Failed("المان با کُدِ درخواست شده وجود ندارد!");
+            return UpdateElementResult.Failed("المان با کُدِ درخواست شده وجود ندارد!");
 
         if (element.Layer.Code != layer.Code)
-            return UpdateResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
+            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
 
         var updatedVersion = command.Timetag.Ticks;
         if (element.StatusVersion > updatedVersion)
-            return UpdateResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(StatusVersion passed!)");
+            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(StatusVersion passed!)");
 
 
 
         var statusChanged = element.CheckStatusChange(command.NormalStatus, command.ActualStatus);
 
         if (!statusChanged)
-            return UpdateResult.Failed("در موارد درخواست شده تغییر داده نشده!");
+            return UpdateElementResult.Failed("در موارد درخواست شده تغییر داده نشده!");
 
         element.UpdateStatus(command.NormalStatus, command.ActualStatus, command.StatusSource, updatedVersion);
 
         updateVersion(element.StatusVersion);
         Save(element);
 
-        return UpdateResult.Success($"[{layer.Code}-{element.Code}] Status updated.");
+        return UpdateElementResult.Success(false, false, true, $"[{layer.Code}-{element.Code}] Data updated.");
 
     }
 
