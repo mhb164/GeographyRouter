@@ -282,30 +282,36 @@ public partial class GeographyRepository
         public readonly LayerElementStatus NormalStatus;
         public readonly LayerElementStatus ActualStatus;
         public readonly LayerElementStatusSource StatusSource;
+        public readonly string StatusComment;
 
         public UpdateElementStatusCommand(string layerCode,
                                           string elementCode,
                                           DateTime timetag,
                                           bool isNormalOpen,
                                           bool connected,
-                                          LayerElementStatusSource statusSource)
+                                          LayerElementStatusSource statusSource,
+                                          string statusComment)
             : this(layerCode,
                    elementCode,
                    timetag,
                    isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close,
                    connected ? LayerElementStatus.Close : LayerElementStatus.Open,
-                   statusSource)
-        { }
+                   statusSource,
+                   statusComment)
+        {
+        }
 
         public UpdateElementStatusCommand(string layerCode,
             string elementCode,
             DateTime timetag,
             LayerElementStatus normalStatus,
             LayerElementStatus actualStatus,
-            LayerElementStatusSource statusSource)
+            LayerElementStatusSource statusSource,
+            string statusComment)
         {
             if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
+            if (string.IsNullOrWhiteSpace(statusComment)) throw new ArgumentException("توضیحات خالی وارد شده است!");
 
             LayerCode = PerformCodeCorrection(layerCode);
             ElementCode = PerformCodeCorrection(elementCode);
@@ -313,6 +319,7 @@ public partial class GeographyRepository
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
             StatusSource = statusSource;
+            StatusComment = PerformTextCorrection(statusComment);
         }
     }
 

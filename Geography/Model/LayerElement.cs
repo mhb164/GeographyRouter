@@ -34,6 +34,7 @@ namespace GeographyModel
                             LayerElementStatus normalStatus,
                             LayerElementStatus actualStatus,
                             LayerElementStatusSource statusSource,
+                            string statusComment,
                             long statusVersion)
         {
             Layer = layer;
@@ -46,6 +47,7 @@ namespace GeographyModel
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
             StatusSource = statusSource;
+            StatusComment = statusComment;
             StatusVersion = statusVersion;
         }
 
@@ -54,6 +56,7 @@ namespace GeographyModel
                            LayerElementStatus normalStatus,
                            LayerElementStatus actualStatus,
                            LayerElementStatusSource statusSource,
+                            string statusComment,
                            long version)
         {
             Points = points;
@@ -61,6 +64,7 @@ namespace GeographyModel
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
             StatusSource = statusSource;
+            StatusComment = statusComment;
             DataVersion = StatusVersion = version;
         }
 
@@ -76,11 +80,13 @@ namespace GeographyModel
         public void UpdateStatus(LayerElementStatus normalStatus,
             LayerElementStatus actualStatus,
             LayerElementStatusSource statusSource,
+            string statusComment,
             long version)
         {
             NormalStatus = normalStatus;
             ActualStatus = actualStatus;
             StatusSource = statusSource;
+            StatusComment = statusComment;
             StatusVersion = version;
         }
 
@@ -95,6 +101,8 @@ namespace GeographyModel
         public LayerElementStatus ActualStatus { get; private set; }
 
         public LayerElementStatusSource StatusSource { get; private set; }
+
+        public string StatusComment { get; private set; }
 
         public long StatusVersion { get; private set; }
 

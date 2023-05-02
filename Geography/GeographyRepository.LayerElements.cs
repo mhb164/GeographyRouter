@@ -108,7 +108,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
             element.UpdateData(points, elementFieldValues, updatedVersion);
 
         if (statusChanged && element.StatusVersion <= updatedVersion)
-            element.UpdateStatus(normalStatus, actualStatus, statusSource, updatedVersion);
+            element.UpdateStatus(normalStatus, actualStatus, statusSource, string.Empty, updatedVersion);
 
         if (element.Layer.IsElectrical && (element.Layer.GeographyType == LayerGeographyType.Point || element.Layer.GeographyType == LayerGeographyType.Polyline))
             ElecricalMatrix.Add(element);
@@ -136,6 +136,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
                                        normalStatus,
                                        actualStatus,
                                        statusSource,
+                                       string.Empty,
                                        createVersion);
 
         _elements.Add(element.Code, element);
@@ -239,7 +240,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         if (!statusChanged)
             return UpdateElementResult.Failed("در موارد درخواست شده تغییر داده نشده!");
 
-        element.UpdateStatus(command.NormalStatus, command.ActualStatus, command.StatusSource, updatedVersion);
+        element.UpdateStatus(command.NormalStatus, command.ActualStatus, command.StatusSource, command.StatusComment, updatedVersion);
 
         updateVersion(element.StatusVersion);
         Save(element);
