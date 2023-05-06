@@ -276,7 +276,6 @@ public partial class GeographyRepository
 
     public class UpdateElementStatusCommand
     {
-        public readonly string LayerCode;
         public readonly string ElementCode;
         public readonly DateTime Timetag;
         public readonly LayerElementStatus NormalStatus;
@@ -284,15 +283,13 @@ public partial class GeographyRepository
         public readonly LayerElementStatusSource StatusSource;
         public readonly string StatusComment;
 
-        public UpdateElementStatusCommand(string layerCode,
-                                          string elementCode,
+        public UpdateElementStatusCommand(string elementCode,
                                           DateTime timetag,
                                           bool isNormalOpen,
                                           bool connected,
                                           LayerElementStatusSource statusSource,
                                           string statusComment)
-            : this(layerCode,
-                   elementCode,
+            : this(elementCode,
                    timetag,
                    isNormalOpen ? LayerElementStatus.Open : LayerElementStatus.Close,
                    connected ? LayerElementStatus.Close : LayerElementStatus.Open,
@@ -301,19 +298,16 @@ public partial class GeographyRepository
         {
         }
 
-        public UpdateElementStatusCommand(string layerCode,
-            string elementCode,
+        public UpdateElementStatusCommand(string elementCode,
             DateTime timetag,
             LayerElementStatus normalStatus,
             LayerElementStatus actualStatus,
             LayerElementStatusSource statusSource,
             string statusComment)
         {
-            if (string.IsNullOrWhiteSpace(layerCode)) throw new ArgumentException("کُد لایه خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(elementCode)) throw new ArgumentException("کُد خالی وارد شده است!");
             if (string.IsNullOrWhiteSpace(statusComment)) throw new ArgumentException("توضیحات خالی وارد شده است!");
 
-            LayerCode = PerformCodeCorrection(layerCode);
             ElementCode = PerformCodeCorrection(elementCode);
             Timetag = timetag;
             NormalStatus = normalStatus;

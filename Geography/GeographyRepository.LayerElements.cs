@@ -220,18 +220,12 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
     public UpdateElementResult ExcecuteWithoutLock(UpdateElementStatusCommand command)
     {
-        if (!_layers.TryGetValue(command.LayerCode, out var layer))
-            return UpdateElementResult.Failed("لایه با کد درخواست شده وجود ندارد!");
-
         if (!_elements.TryGetValue(command.ElementCode, out var element))
             return UpdateElementResult.Failed("المان با کُدِ درخواست شده وجود ندارد!");
-
-        if (element.Layer.Code != layer.Code)
-            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(Layer mismatch!)");
-
+        
         var updatedVersion = command.Timetag.Ticks;
         if (element.StatusVersion > updatedVersion)
-            return UpdateElementResult.Failed($"[{layer.Code}-{element.Code}] UpdateElement(StatusVersion passed!)");
+            return UpdateElementResult.Failed($"[{element.Layer.Code}-{element.Code}] UpdateElement(StatusVersion passed!)");
 
 
 
@@ -245,7 +239,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
         updateVersion(element.StatusVersion);
         Save(element);
 
-        return UpdateElementResult.Success(false, false, true, $"[{layer.Code}-{element.Code}] Data updated.");
+        return UpdateElementResult.Success(false, false, true, $"[{element.Layer.Code}-{element.Code}] Data updated.");
 
     }
 
