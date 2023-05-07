@@ -95,7 +95,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
         var pointsChanged = element.CheckPointsChange(points);
         var fieldValuesChanged = element.CheckFieldValuesChange(elementFieldValues);
-        var statusChanged = element.CheckStatusChange(normalStatus, actualStatus);
+        var statusChanged = element.CheckStatusChange(normalStatus, actualStatus, element.StatusComment);
 
         var changed = pointsChanged || fieldValuesChanged || statusChanged;
 
@@ -222,14 +222,12 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     {
         if (!_elements.TryGetValue(command.ElementCode, out var element))
             return UpdateElementResult.Failed("المان با کُدِ درخواست شده وجود ندارد!");
-        
+
         var updatedVersion = command.Timetag.Ticks;
         if (element.StatusVersion > updatedVersion)
             return UpdateElementResult.Failed($"[{element.Layer.Code}-{element.Code}] UpdateElement(StatusVersion passed!)");
 
-
-
-        var statusChanged = element.CheckStatusChange(command.NormalStatus, command.ActualStatus);
+        var statusChanged = element.CheckStatusChange(command.NormalStatus, command.ActualStatus, command.StatusComment);
 
         if (!statusChanged)
             return UpdateElementResult.Failed("در موارد درخواست شده تغییر داده نشده!");

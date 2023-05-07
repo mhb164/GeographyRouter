@@ -34,8 +34,8 @@ namespace GeographyModel
             return false;
         }
 
-        public bool CheckStatusChange(in LayerElementStatus normalStatus, in LayerElementStatus actualStatus)
-            => NormalStatus != normalStatus || ActualStatus != actualStatus;
+        public bool CheckStatusChange(in LayerElementStatus normalStatus, in LayerElementStatus actualStatus, in string comment)
+            => NormalStatus != normalStatus || ActualStatus != actualStatus || StatusComment != comment;
 
         public string GetFieldvalue(string Fieldcode)
         {
