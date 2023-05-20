@@ -194,6 +194,7 @@ public partial class GeographyRepository
                 return UpdateResult.Failed("لایه با کُدِ درخواست شده وجود ندارد!");
 
             var changed = false;
+            changed |= command.Category != layer.Category;
             changed |= command.Displayname != layer.Displayname;
 
             var elementDisplaynameFormatChanged = command.DisplaynameFormat != layer.ElementDisplaynameFormat;
