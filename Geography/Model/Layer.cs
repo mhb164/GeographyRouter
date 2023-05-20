@@ -14,10 +14,12 @@ namespace GeographyModel
         private readonly Dictionary<int, LayerField> fieldsbyIndex;
 
         public Layer(string code,
+                     string category,
                      string displayname,
                      LayerGeographyType geographyType)
         {
             Code = code;
+            Category = category;
             Displayname = displayname;
             GeographyType = geographyType;
 
@@ -31,6 +33,7 @@ namespace GeographyModel
         }
 
         public Layer(string code,
+                     string category,
                      string displayname,
                      LayerGeographyType geographyType,
                      string elementDisplaynameFormat,
@@ -42,6 +45,7 @@ namespace GeographyModel
             fields = new Dictionary<string, LayerField>();
             fieldsbyIndex = new Dictionary<int, LayerField>();
 
+            Category = category;
             Displayname = displayname;
             GeographyType = geographyType;
             ElementDisplaynameFormat = elementDisplaynameFormat;
@@ -50,6 +54,7 @@ namespace GeographyModel
             IsDisconnector = isDisconnector;
         }
 
+        public string Category { get; private set; }
         public string Displayname { get; private set; }
 
 
@@ -70,11 +75,13 @@ namespace GeographyModel
             IsRoutingSource = isRoutingSource;
         }
 
-        public void Update(string displayname,
+        public void Update(string category, 
+            string displayname,
             string elementDisplaynameFormat,
             bool isElectrical,
             bool isDisconnector)
         {
+            Category = category;
             Displayname = displayname;
             ElementDisplaynameFormat = elementDisplaynameFormat;
             IsElectrical = isElectrical;

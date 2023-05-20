@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-public partial class GeographyRepository 
+public partial class GeographyRepository
 {
     readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
     protected void WriteByLock(Action action)
@@ -22,14 +22,20 @@ public partial class GeographyRepository
         finally { _lock.ExitWriteLock(); }
     }
 
-    protected T WriteByLock<T>(Func<T> func)
+    protected T WriteByLock<T>(Func<T> func, params Action[] afterActions)
     {
         _lock.EnterWriteLock();
+        var result = default(T);
         try
         {
-            return func.Invoke();
+            result = func.Invoke();
         }
         finally { _lock.ExitWriteLock(); }
+
+        foreach (var afterAction in afterActions)
+            afterAction.Invoke();
+
+        return result;
     }
 
     protected void ReadByLock(Action action)

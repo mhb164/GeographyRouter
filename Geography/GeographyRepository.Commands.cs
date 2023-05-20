@@ -46,23 +46,6 @@ public partial class GeographyRepository
                 throw new ArgumentException("کُدِ یکی از فیلدها تکراری است!");
             Fields = fields.ToList();
         }
-
-        internal Layer Createlayer()
-        {
-            var layer = new Layer(Code,
-                Displayname,
-                GeographyType,
-                elementDisplaynameFormat: "{LAYERNAME} ({CODE})",
-                isRoutingSource: false,
-                isElectrical: false,
-                isDisconnector: false);
-
-            foreach (var field in Fields)
-            {
-                layer.AddFiled(field.Code, field.Displayname);
-            }
-            return layer;
-        }
     }
 
     public class CreateLayerFieldCommand
@@ -163,12 +146,14 @@ public partial class GeographyRepository
     public class UpdateLayerCommand
     {
         public readonly string LayerCode;
+        public readonly string Category;
         public readonly string Displayname;
         public readonly string DisplaynameFormat;//ElementDisplaynameFormat
         public readonly bool UseInRouting;//IsElectrical
         public readonly bool Disconnectable;//IsDisconnector
 
         public UpdateLayerCommand(string layerCode,
+                                  string category,
                                   string displayname,
                                   string displaynameFormat,
                                   bool useInRouting,
@@ -179,6 +164,7 @@ public partial class GeographyRepository
             if (string.IsNullOrWhiteSpace(displaynameFormat)) throw new ArgumentException("قالب نمایش خالی وارد شده است!");
 
             LayerCode = PerformCodeCorrection(layerCode);
+            Category = PerformTextCorrection(category);
             Displayname = PerformTextCorrection(displayname);
             DisplaynameFormat = displaynameFormat.Trim();
             UseInRouting = useInRouting;

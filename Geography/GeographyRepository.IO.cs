@@ -257,6 +257,7 @@ public partial class GeographyRepository
 
     private static Layer ToDomain(Geography.IO.Layer input)
         => new Layer(input.Code,
+                     string.Empty,
                      input.Displayname,
                      (LayerGeographyType)(int)input.GeographyType,
                      input.ElementDisplaynameFormat,

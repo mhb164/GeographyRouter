@@ -24,6 +24,8 @@ public partial class GeographyRepository
         }
     }
 
+    protected virtual void OnLayersChanged() { }
+
     public UpdateResult Excecute(List<CreateLayerCommand> commands) => WriteByLock(() =>
     {
         if (isStructureLocked)
@@ -35,9 +37,9 @@ public partial class GeographyRepository
             if (!updateResult.Result) return updateResult;
         }
         return UpdateResult.Success();
-    });
+    }, OnLayersChanged);
 
-    public UpdateResult Excecute(CreateLayerCommand command) => WriteByLock(() => ExcecuteWithoutLock(command));
+    public UpdateResult Excecute(CreateLayerCommand command) => WriteByLock(() => ExcecuteWithoutLock(command), OnLayersChanged);
 
     private UpdateResult ExcecuteWithoutLock(CreateLayerCommand command)
     {
@@ -48,7 +50,7 @@ public partial class GeographyRepository
             return UpdateResult.Failed($"لایه {layer} وجود دارد!");
 
 
-        layer = new Layer(command.Code, command.Displayname, command.GeographyType);
+        layer = new Layer(command.Code, category: string.Empty, command.Displayname, command.GeographyType);
         foreach (var field in command.Fields)
             layer.AddFiled(field.Code, field.Displayname);
 
@@ -76,7 +78,7 @@ public partial class GeographyRepository
         Save(layer);
 
         return UpdateResult.Success();
-    });
+    }, OnLayersChanged);
 
     public UpdateResult Excecute(UpdateLayerFieldCommand command) => WriteByLock(() =>
     {
@@ -97,7 +99,7 @@ public partial class GeographyRepository
 
         Save(layer);
         return UpdateResult.Success();
-    });
+    }, OnLayersChanged);
 
     public UpdateResult Excecute(DeleteLayerFieldCommand command) => WriteByLock(() =>
     {
@@ -115,7 +117,7 @@ public partial class GeographyRepository
 
         Save(layer);
         return UpdateResult.Success();
-    });
+    }, OnLayersChanged);
 
     public UpdateResult Excecute(DeleteLayerCommand command) => WriteByLock(() =>
     {
@@ -130,7 +132,7 @@ public partial class GeographyRepository
 
         Delete(layer);
         return UpdateResult.Success();
-    });
+    }, OnLayersChanged);
 
     public UpdateResult Excecute(DeleteAllLayersCommand command) => WriteByLock(() =>
     {
@@ -142,7 +144,7 @@ public partial class GeographyRepository
 
         DeleteAllLayers();
         return UpdateResult.Success();
-    });
+    }, OnLayersChanged);
 
     public UpdateResult Excecute(MakeLayerAsRoutingSourceCommand command)
     {
@@ -173,7 +175,7 @@ public partial class GeographyRepository
             }
 
             return UpdateResult.Success();
-        });
+        }, OnLayersChanged);
 
         if (updateResult.Result && routingChanged)
             FireRoutingChangeDetected();
@@ -207,12 +209,12 @@ public partial class GeographyRepository
             if (!layer.CheckDisplaynameFormat(command.DisplaynameFormat, out var errorMessage))
                 return UpdateResult.Failed($"قالب نمایش المان ها صحیح نیست ({errorMessage})!");
 
-            layer.Update(command.Displayname, command.DisplaynameFormat, command.UseInRouting, command.Disconnectable);
+            layer.Update(command.Category, command.Displayname, command.DisplaynameFormat, command.UseInRouting, command.Disconnectable);
 
             Save(layer);
 
             return UpdateResult.Success();
-        });
+        }, OnLayersChanged);
 
         if (updateResult.Result && routingChanged)
             FireRoutingChangeDetected();
