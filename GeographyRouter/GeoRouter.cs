@@ -18,7 +18,12 @@ namespace GeographyRouter
             Repo = repo;
             LogAction = logAction;
 
-            start();
+            Repo.EnableLockForRouting();
+            try
+            {
+                start();
+            }
+            finally { Repo.DisableLockForRouting(); }
         }
 
         private List<Routing> routings = new List<Routing>();
@@ -34,7 +39,7 @@ namespace GeographyRouter
         {
             if (routingPairs.TryGetValue(code, out var routingItem))
                 return routingItem;
-            else 
+            else
                 return null;
         }
 

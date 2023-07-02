@@ -10,15 +10,25 @@ using System.Threading.Tasks;
 
 public partial class GeographyRepository : GeographyRouter.IGeoRepository
 {
-    public void ResetRouting() => WriteByLock(() =>
+    public void EnableLockForRouting()
+    {
+        _lock.EnterWriteLock();
+    }
+
+    public void DisableLockForRouting()
+    {
+        _lock.ExitWriteLock();
+    }
+
+    public void ResetRouting() 
     {
         Parallel.ForEach(_elements.Values, element =>
         {
             element.ResetRouting();
         });
-    });
+    }
 
-    public List<GeographyRouter.ILayerElement> GetRoutingSources() => ReadByLock(() =>
+    public List<GeographyRouter.ILayerElement> GetRoutingSources() 
     {
         var layer = _layers.Values.FirstOrDefault(x => x.IsRoutingSource);
 
@@ -27,15 +37,12 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
 
         return GetLayerElementsWithoutLock(layer.Code).ToList<GeographyRouter.ILayerElement>();
 
-    });
+    }
 
-    public void RoutingHitTest(double latitude, double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute) /*=> Lock.PerformRead(() =>*/
+    public void RoutingHitTest(double latitude, double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute) 
     {
-        //var result = new List<LayerElement>();
-        ElecricalMatrix.HitTest(ref latitude, ref longitude, ref result, justNotRoute);
-
-        //return result;
-    }//);
+        ElecricalMatrix.HitTest(ref latitude, ref longitude, ref result, justNotRoute, false);
+    }
 
     public List<string> GetNotRoutedCodes() => ReadByLock(() =>
     {

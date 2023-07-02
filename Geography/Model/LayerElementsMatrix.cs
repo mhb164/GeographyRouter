@@ -6,20 +6,32 @@ namespace GeographyModel
     public abstract partial class LayerElementsMatrix
     {
         private readonly Func<string, LayerElement> GetElement_Func;
-        public LayerElementsMatrix(Func<string, LayerElement> getElement_Func)
+        private readonly Func<string, LayerElement> GetElementWithoutLock_Func;
+        protected LayerElementsMatrix(Func<string, LayerElement> getElement_Func, Func<string, LayerElement> getElementWithoutLock_Func)
         {
             GetElement_Func = getElement_Func;
+            GetElementWithoutLock_Func = getElementWithoutLock_Func;
         }
 
-        protected LayerElement GetElement(string elementCode) => GetElement_Func?.Invoke(elementCode);
+        protected LayerElement GetElement(string elementCode, bool useLock)
+        {
+            if (useLock)
+            {
+                return GetElement_Func?.Invoke(elementCode);
+            }
+            
+            return GetElementWithoutLock_Func?.Invoke(elementCode);
+        }
+
         public abstract void Add(LayerElement element);
         public abstract void Remove(LayerElement element);
-        public abstract void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute);
+        public abstract void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute, bool useLock);
     }
 
     public partial class LayerElementsMatrixByPoint : LayerElementsMatrix
     {
-        public LayerElementsMatrixByPoint(Func<string, LayerElement> getElement_Func) : base(getElement_Func) { }
+        public LayerElementsMatrixByPoint(Func<string, LayerElement> getElement_Func, Func<string, LayerElement> getElementWithoutLock_Func)
+            : base(getElement_Func, getElementWithoutLock_Func) { }
 
         Dictionary<string, HashSet<ulong>> lookupsByElements = new Dictionary<string, HashSet<ulong>>();
         Dictionary<ulong, Dictionary<ulong, HashSet<string>>> lookups = new Dictionary<ulong, Dictionary<ulong, HashSet<string>>>();
@@ -76,7 +88,7 @@ namespace GeographyModel
             lookupsByElements.Remove(element.Code);
         }
 
-        public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute)
+        public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute, bool useLock)
         {
             var key1 = CreateKey1(latitude, longitude);
             if (!lookups.TryGetValue(key1, out var key1Lookup)) return;
@@ -86,7 +98,7 @@ namespace GeographyModel
 
             foreach (var elementId in key1Key2Lookup)
             {
-                var element = GetElement(elementId);
+                var element = GetElement(elementId, useLock);
                 if (element == null) continue;
                 if (element.Routed && justNotRoute) continue;
 
@@ -113,7 +125,7 @@ namespace GeographyModel
 
     public partial class LayerElementsMatrixByPolygon : LayerElementsMatrix
     {
-        public LayerElementsMatrixByPolygon(Func<string, LayerElement> getElement_Func) : base(getElement_Func) { }
+        public LayerElementsMatrixByPolygon(Func<string, LayerElement> getElement_Func, Func<string, LayerElement> getElementWithoutLock_Func) : base(getElement_Func, getElementWithoutLock_Func) { }
         Dictionary<string, LayerElement> elements = new Dictionary<string, LayerElement>();
 
         public override void Add(LayerElement element)
@@ -128,7 +140,7 @@ namespace GeographyModel
 
             elements.Remove(element.Code);
         }
-        public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute)
+        public override void HitTest(ref double latitude, ref double longitude, ref List<GeographyRouter.ILayerElement> result, bool justNotRoute, bool useLock)
         {
 
         }

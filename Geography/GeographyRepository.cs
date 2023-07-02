@@ -40,7 +40,7 @@ public partial class GeographyRepository : GeographyRouter.IGeoRepository
     {
         _layers.Clear();
         _elementsByLayerCode.Clear();
-        ElecricalMatrix = new LayerElementsMatrixByPoint(GetElement);
+        ElecricalMatrix = new LayerElementsMatrixByPoint(GetElement, GetElementWithoutLock);
         //---------------------
         _elements.Clear();
         //---------------------
